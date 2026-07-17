@@ -1,5 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Role from 'App/Models/Role'
+import CreateRoleValidator from 'App/Validators/Role/CreateRoleValidator'
+import DeleteRoleValidator from 'App/Validators/Role/DeleteRoleValidator'
+import GetRoleValidator from 'App/Validators/Role/GetRoleValidator'
+import UpdateRoleValidator from 'App/Validators/Role/UpdateRoleValidator'
 
 export default class RolesController {
   public async getRoles({ response }: HttpContextContract) {
@@ -8,8 +12,10 @@ export default class RolesController {
     return response.ok(roles)
   }
 
-  public async getRole({ params, response }: HttpContextContract) {
-    const role = await Role.query().where('key', params.key).preload('permissions').first()
+  public async getRole({ request, response }: HttpContextContract) {
+    const { key } = await request.validate(GetRoleValidator)
+
+    const role = await Role.query().where('key', key).preload('permissions').first()
 
     if (!role) {
       return response.notFound({
@@ -21,7 +27,7 @@ export default class RolesController {
   }
 
   public async postRole({ request, response }: HttpContextContract) {
-    const data = request.only(['key', 'name', 'description', 'status'])
+    const data = await request.validate(CreateRoleValidator)
 
     try {
       const role = await Role.create(data)
@@ -34,24 +40,31 @@ export default class RolesController {
     }
   }
 
-  public async updateRole({ params, request, response }: HttpContextContract) {
-    const role = await Role.find(params.key)
+  public async updateRole({ request, response }: HttpContextContract) {
+    const { key } = await request.validate(GetRoleValidator)
+    const role = await Role.find(key)
 
     if (!role) {
       return response.notFound({
         message: 'Role not found',
       })
     }
+    try {
+      role.merge(await request.validate(UpdateRoleValidator))
 
-    role.merge(request.only(['name', 'description', 'status']))
+      await role.save()
 
-    await role.save()
-
-    return response.ok(role)
+      return response.ok(role)
+    } catch (error) {
+      return response.badRequest({
+        message: error.message,
+      })
+    }
   }
 
-  public async deleteRole({ params, response }: HttpContextContract) {
-    const role = await Role.find(params.key)
+  public async deleteRole({ request, response }: HttpContextContract) {
+    const { key } = await request.validate(DeleteRoleValidator)
+    const role = await Role.find(key)
 
     if (!role) {
       return response.notFound({

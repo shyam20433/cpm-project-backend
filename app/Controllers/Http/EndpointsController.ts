@@ -1,15 +1,22 @@
+import { Request } from '@adonisjs/core/build/standalone'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Endpoint from 'App/Models/Endpoint'
 
+import CreateEndpointValidator from 'App/Validators/Endpoint/CreateEndpointValidator'
+import DeleteEndpointValidator from 'App/Validators/Endpoint/DeleteEndpointValidator'
+import GetEndpointValidator from 'App/Validators/Endpoint/GetEndpointValidator'
+import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValidator'
+
 export default class EndpointsController {
   public async getEndpoints({ response }: HttpContextContract) {
-    const endpoints = await Endpoint.query().preload('permissions')
+    const endpoints = await Endpoint.query()
 
     return response.ok(endpoints)
   }
 
-  public async getEndpoint({ params, response }: HttpContextContract) {
-    const endpoint = await Endpoint.query().preload('permissions').where('id', params.id).first()
+  public async getEndpoint({ response, request }: HttpContextContract) {
+    const { id } = await request.validate(GetEndpointValidator)
+    const endpoint = await Endpoint.query().where('id',id).first()
 
     if (!endpoint) {
       return response.notFound({ message: 'Endpoint not found' })
@@ -19,7 +26,7 @@ export default class EndpointsController {
   }
 
   public async postEndpoint({ request, response }: HttpContextContract) {
-    const data = request.only(['method', 'route', 'serviceId', 'status'])
+    const data = await request.validate(CreateEndpointValidator)
     try {
       const endpoint = await Endpoint.create(data)
       return response.created(endpoint)
@@ -28,14 +35,15 @@ export default class EndpointsController {
     }
   }
 
-  public async updateEndpoint({ params, request, response }: HttpContextContract) {
-    const endpoint = await Endpoint.find(params.id)
+  public async updateEndpoint({ request, response }: HttpContextContract) {
+     const { id } = await request.validate(GetEndpointValidator)
+    const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {
       return response.notFound({ message: 'Endpoint not found' })
     }
     try {
-      endpoint.merge(request.only(['method', 'route', 'serviceId', 'status']))
+      endpoint.merge(await request.validate(UpdateEndpointValidator))
 
       await endpoint.save()
 
@@ -45,8 +53,9 @@ export default class EndpointsController {
     }
   }
 
-  public async deleteEndpoint({ params, response }: HttpContextContract) {
-    const endpoint = await Endpoint.find(params.id)
+  public async deleteEndpoint({request,response }: HttpContextContract) {
+     const { id } = await request.validate(DeleteEndpointValidator)
+    const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {
       return response.notFound({ message: 'Endpoint not found' })

@@ -1,6 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Permission from 'App/Models/Permission'
-
+import CreatePermissionValidator from 'App/Validators/Permission/CreatePermissionValidator'
+import DeletePermissionValidator from 'App/Validators/Permission/DeletePermissionValidator'
+import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissionValidator'
+import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
 export default class PermissionsController {
   public async getPermissions({ response }: HttpContextContract) {
     const permissions = await Permission.query().preload('roles').preload('endpoints')
@@ -8,9 +11,10 @@ export default class PermissionsController {
     return response.ok(permissions)
   }
 
-  public async getPermission({ params, response }: HttpContextContract) {
+  public async getPermission({ request, response }: HttpContextContract) {
+    const { key } = await request.validate(GetPermissionValidator)
     const permission = await Permission.query()
-      .where('key', params.key)
+      .where('key', key)
       .preload('roles')
       .preload('endpoints')
       .first()
@@ -25,7 +29,7 @@ export default class PermissionsController {
   }
 
   public async postPermission({ request, response }: HttpContextContract) {
-    const data = request.only(['key', 'name', 'description', 'status'])
+    const data = await request.validate(CreatePermissionValidator)
 
     try {
       const permission = await Permission.create(data)
@@ -38,24 +42,31 @@ export default class PermissionsController {
     }
   }
 
-  public async updatePermission({ params, request, response }: HttpContextContract) {
-    const permission = await Permission.find(params.key)
+  public async updatePermission({ request, response }: HttpContextContract) {
+    const { key } = await request.validate(GetPermissionValidator)
+    const permission = await Permission.find(key)
 
     if (!permission) {
       return response.notFound({
         message: 'Permission not found',
       })
     }
+    try {
+      permission.merge(await request.validate(UpdatePermissionValidator))
 
-    permission.merge(request.only(['name', 'description', 'status']))
+      await permission.save()
 
-    await permission.save()
-
-    return response.ok(permission)
+      return response.ok(permission)
+    } catch (error) {
+      return response.badRequest({
+        message: error.message,
+      })
+    }
   }
 
-  public async deletePermission({ params, response }: HttpContextContract) {
-    const permission = await Permission.find(params.key)
+  public async deletePermission({ request, response }: HttpContextContract) {
+    const { key } = await request.validate(DeletePermissionValidator)
+    const permission = await Permission.find(key)
 
     if (!permission) {
       return response.notFound({

@@ -1,5 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import AssignedEndpoint from 'App/Models/AssignedEndpoint'
+import GetAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/GetAssignedEndpointValidator'
+import CreateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/CreateAssignedEndpointValidator'
+import DeleteAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/DeleteAssignedEndpointValidator'
+import UpdateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/UpdateAssignedEndpointValidator'
 
 export default class AssignedEndpointsController {
   public async getAssignedEndpoints({ response }: HttpContextContract) {
@@ -10,10 +14,11 @@ export default class AssignedEndpointsController {
     return response.ok(assignedEndpoints)
   }
 
-  public async getAssignedEndpoint({ params, response }: HttpContextContract) {
+  public async getAssignedEndpoint({ request, response }: HttpContextContract) {
+    const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
     const assignedEndpoint = await AssignedEndpoint.query()
-      .where('endpointId', params.endpointId)
-      .where('permissionKey', params.permissionKey)
+      .where('endpointId', endpointId)
+      .where('permissionKey', permissionKey)
       .preload('endpoint')
       .preload('permission')
       .first()
@@ -28,10 +33,7 @@ export default class AssignedEndpointsController {
   }
 
   public async postAssignedEndpoint({ request, response }: HttpContextContract) {
-    const data = request.only([
-      'endpointId',
-      'permissionKey',
-    ])
+    const data = await request.validate(CreateAssignedEndpointValidator)
 
     try {
       const assignedEndpoint = await AssignedEndpoint.create(data)
@@ -44,10 +46,12 @@ export default class AssignedEndpointsController {
     }
   }
 
-  public async updateAssignedEndpoint({ params, request, response }: HttpContextContract) {
+  public async updateAssignedEndpoint({ request, response }: HttpContextContract) {
+    const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
+
     const assignedEndpoint = await AssignedEndpoint.query()
-      .where('endpointId', params.endpointId)
-      .where('permissionKey', params.permissionKey)
+      .where('endpointId', endpointId)
+      .where('permissionKey', permissionKey)
       .first()
 
     if (!assignedEndpoint) {
@@ -55,23 +59,25 @@ export default class AssignedEndpointsController {
         message: 'Assigned endpoint not found',
       })
     }
+    try {
+      assignedEndpoint.merge(await request.validate(UpdateAssignedEndpointValidator))
 
-    assignedEndpoint.merge(
-      request.only([
-        'endpointId',
-        'permissionKey',
-      ])
-    )
+      await assignedEndpoint.save()
 
-    await assignedEndpoint.save()
-
-    return response.ok(assignedEndpoint)
+      return response.ok(assignedEndpoint)
+    } catch (error) {
+      return response.badRequest({
+        message: error.message,
+      })
+    }
   }
 
-  public async deleteAssignedEndpoint({ params, response }: HttpContextContract) {
+  public async deleteAssignedEndpoint({ request, response }: HttpContextContract) {
+    const { endpointId, permissionKey } = await request.validate(DeleteAssignedEndpointValidator)
+
     const assignedEndpoint = await AssignedEndpoint.query()
-      .where('endpointId', params.endpointId)
-      .where('permissionKey', params.permissionKey)
+      .where('endpointId', endpointId)
+      .where('permissionKey', permissionKey)
       .first()
 
     if (!assignedEndpoint) {
@@ -79,11 +85,16 @@ export default class AssignedEndpointsController {
         message: 'Assigned endpoint not found',
       })
     }
+    try {
+      await assignedEndpoint.delete()
 
-    await assignedEndpoint.delete()
-
-    return response.ok({
-      message: 'Assigned endpoint deleted successfully',
-    })
+      return response.ok({
+        message: 'Assigned endpoint deleted successfully',
+      })
+    } catch (error) {
+      return response.badRequest({
+        message: error.message,
+      })
+    }
   }
 }

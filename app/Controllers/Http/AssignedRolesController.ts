@@ -1,5 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import AssignedRole from 'App/Models/AssignedRole'
+import GetAssignedRoleValidator from 'App/Validators/AssignedRole/GetAssignedRoleValidator'
+import CreateAssignedRoleValidator from 'App/Validators/AssignedRole/CreateAssignedRoleValidator'
+import UpdateAssignedRoleValidator from 'App/Validators/AssignedRole/UpdateAssignedRoleValidator'
+import DeleteAssignedRoleValidator from 'App/Validators/AssignedRole/DeleteAssignedRoleValidator'
 
 export default class AssignedRolesController {
   public async getAssignedRoles({ response }: HttpContextContract) {
@@ -8,8 +12,9 @@ export default class AssignedRolesController {
     return response.ok(assignedRoles)
   }
 
-  public async getAssignedRole({ params, response }: HttpContextContract) {
-    const assignedRole = await AssignedRole.find(params.id)
+  public async getAssignedRole({ request, response }: HttpContextContract) {
+    const { id } = await request.validate(GetAssignedRoleValidator)
+    const assignedRole = await AssignedRole.find(id)
 
     if (!assignedRole) {
       return response.notFound({
@@ -23,7 +28,7 @@ export default class AssignedRolesController {
   }
 
   public async postAssignedRole({ request, response }: HttpContextContract) {
-    const data = request.only(['roleKey', 'email'])
+    const data = await request.validate(CreateAssignedRoleValidator)
 
     try {
       const assignedRole = await AssignedRole.create(data)
@@ -36,24 +41,33 @@ export default class AssignedRolesController {
     }
   }
 
-  public async updateAssignedRole({ params, request, response }: HttpContextContract) {
-    const assignedRole = await AssignedRole.find(params.id)
+  public async updateAssignedRole({ request, response }: HttpContextContract) {
+    const { id } = await request.validate(GetAssignedRoleValidator)
+
+    const assignedRole = await AssignedRole.find(id)
 
     if (!assignedRole) {
       return response.notFound({
         message: 'Assigned role not found',
       })
     }
+    try {
+      assignedRole.merge(await request.validate(UpdateAssignedRoleValidator))
 
-    assignedRole.merge(request.only(['roleKey', 'email']))
+      await assignedRole.save()
 
-    await assignedRole.save()
-
-    return response.ok(assignedRole)
+      return response.ok(assignedRole)
+    } catch (error) {
+      return response.badRequest({
+        message: error.message,
+      })
+    }
   }
 
-  public async deleteAssignedRole({ params, response }: HttpContextContract) {
-    const assignedRole = await AssignedRole.find(params.id)
+  public async deleteAssignedRole({ request, response }: HttpContextContract) {
+    const { id } = await request.validate(DeleteAssignedRoleValidator)
+
+    const assignedRole = await AssignedRole.find(id)
 
     if (!assignedRole) {
       return response.notFound({

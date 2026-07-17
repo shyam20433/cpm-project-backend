@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, manyToMany, ManyToMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, belongsTo, BelongsTo } from '@ioc:Adonis/Lucid/Orm'
 
 import Permission from './Permission'
 
@@ -18,17 +18,12 @@ export default class Endpoint extends BaseModel {
   @column({ columnName: 'service_id' })
   public serviceId!: number
 
+  @column({ columnName: 'permission_key' })
+  public permissionKey!: string
+
   @column()
   public status!: boolean
 
-  @manyToMany(() => Permission, {
-    pivotTable: 'assigned_endpoints',
-    localKey: 'id',
-    pivotForeignKey: 'endpoint_id',
-    relatedKey: 'key',
-    pivotRelatedForeignKey: 'permission_key',
-  })
-  public permissions!: ManyToMany<typeof Permission>
 
   @column.dateTime({ autoCreate: true })
   public createdAt!: DateTime

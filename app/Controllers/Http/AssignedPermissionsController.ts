@@ -1,6 +1,11 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import AssignedPermission from 'App/Models/AssignedPermission'
 
+import GetAssignedPermissionValidator from 'App/Validators/AssignedPermission/GetAssignedPermissionValidator'
+import CreateAssignedPermissionValidator from 'App/Validators/AssignedPermission/CreateAssignedPermissionValidator'
+import DeleteAssignedPermissionValidator from 'App/Validators/AssignedPermission/DeleteAssignedPermissionValidator'
+import UpdateAssignedPermissionValidator from 'App/Validators/AssignedPermission/UpdateAssignedPermissionValidator'
+
 export default class AssignedPermissionsController {
   public async getAssignedPermissions({ response }: HttpContextContract) {
     const assignedPermissions = await AssignedPermission.query()
@@ -10,10 +15,11 @@ export default class AssignedPermissionsController {
     return response.ok(assignedPermissions)
   }
 
-  public async getAssignedPermission({ params, response }: HttpContextContract) {
+  public async getAssignedPermission({ request, response }: HttpContextContract) {
+    const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
     const assignedPermission = await AssignedPermission.query()
-      .where('roleKey', params.roleKey)
-      .where('permissionKey', params.permissionKey)
+      .where('roleKey', roleKey)
+      .where('permissionKey', permissionKey)
       .preload('role')
       .preload('permission')
       .first()
@@ -28,26 +34,26 @@ export default class AssignedPermissionsController {
   }
 
   public async postAssignedPermission({ request, response }: HttpContextContract) {
-    const data = request.only([
-      'roleKey',
-      'permissionKey',
-    ])
+    const data = await request.validate(CreateAssignedPermissionValidator)
 
     try {
       const assignedPermission = await AssignedPermission.create(data)
 
       return response.created(assignedPermission)
     } catch (error) {
-      return response.notAcceptable({
-        message: 'Permission already assigned to role',
+      console.log(error)
+      return response.badRequest({
+        message: error.message,
       })
     }
   }
 
-  public async updateAssignedPermission({ params, request, response }: HttpContextContract) {
+  public async updateAssignedPermission({ request, response }: HttpContextContract) {
+    const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
+
     const assignedPermission = await AssignedPermission.query()
-      .where('roleKey', params.roleKey)
-      .where('permissionKey', params.permissionKey)
+      .where('roleKey', roleKey)
+      .where('permissionKey', permissionKey)
       .first()
 
     if (!assignedPermission) {
@@ -55,23 +61,25 @@ export default class AssignedPermissionsController {
         message: 'Assigned permission not found',
       })
     }
+    try {
+      assignedPermission.merge(await request.validate(UpdateAssignedPermissionValidator))
 
-    assignedPermission.merge(
-      request.only([
-        'roleKey',
-        'permissionKey',
-      ])
-    )
+      await assignedPermission.save()
 
-    await assignedPermission.save()
-
-    return response.ok(assignedPermission)
+      return response.ok(assignedPermission)
+    } catch (error) {
+      return response.badRequest({
+        message: error.message,
+      })
+    }
   }
 
-  public async deleteAssignedPermission({ params, response }: HttpContextContract) {
+  public async deleteAssignedPermission({ request, response }: HttpContextContract) {
+    const { roleKey, permissionKey } = await request.validate(DeleteAssignedPermissionValidator)
+
     const assignedPermission = await AssignedPermission.query()
-      .where('roleKey', params.roleKey)
-      .where('permissionKey', params.permissionKey)
+      .where('roleKey', roleKey)
+      .where('permissionKey', permissionKey)
       .first()
 
     if (!assignedPermission) {
