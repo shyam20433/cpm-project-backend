@@ -5,6 +5,8 @@ import CreateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/Cre
 import DeleteAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/DeleteAssignedEndpointValidator'
 import UpdateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/UpdateAssignedEndpointValidator'
 
+import CheckEndpointExists from 'App/Validators/Exists/CheckEndpointExists'
+import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 export default class AssignedEndpointsController {
   public async getAssignedEndpoints({ response }: HttpContextContract) {
     const assignedEndpoints = await AssignedEndpoint.query()
@@ -16,6 +18,9 @@ export default class AssignedEndpointsController {
 
   public async getAssignedEndpoint({ request, response }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
+
+    await CheckEndpointExists.validate(endpointId)
+    await CheckPermissionExists.validate(permissionKey)
     const assignedEndpoint = await AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
@@ -34,21 +39,24 @@ export default class AssignedEndpointsController {
 
   public async postAssignedEndpoint({ request, response }: HttpContextContract) {
     const data = await request.validate(CreateAssignedEndpointValidator)
+    await CheckPermissionExists.validate(data.permissionKey)
+    await CheckEndpointExists.validate(data.endpointId)
 
     try {
       const assignedEndpoint = await AssignedEndpoint.create(data)
 
       return response.created(assignedEndpoint)
     } catch (error) {
-      return response.notAcceptable({
-        message: 'Endpoint already assigned to permission',
+      return response.badRequest({
+        message: error.message,
       })
     }
   }
 
   public async updateAssignedEndpoint({ request, response }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
-
+    await CheckEndpointExists.validate(endpointId)
+    await CheckPermissionExists.validate(permissionKey)
     const assignedEndpoint = await AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
@@ -74,7 +82,8 @@ export default class AssignedEndpointsController {
 
   public async deleteAssignedEndpoint({ request, response }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(DeleteAssignedEndpointValidator)
-
+    await CheckEndpointExists.validate(endpointId)
+    await CheckPermissionExists.validate(permissionKey)
     const assignedEndpoint = await AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
@@ -86,6 +95,7 @@ export default class AssignedEndpointsController {
       })
     }
     try {
+
       await assignedEndpoint.delete()
 
       return response.ok({

@@ -1,8 +1,8 @@
-import { schema } from '@ioc:Adonis/Core/Validator'
+import { schema,rules } from '@ioc:Adonis/Core/Validator'
 
 export default class CreateAssignedRoleValidator {
   public schema = schema.create({
-    userId: schema.number(),
+    email: schema.string({}, [rules.email()]),
 
     roleKey: schema.string(),
 
@@ -10,8 +10,8 @@ export default class CreateAssignedRoleValidator {
   })
 
   public messages = {
-    'userId.required': 'User ID is required',
-    'userId.number': 'User ID must be a number',
+    'email.required': 'email is required',
+    'email.email': 'enter valid email address',
 
     'roleKey.required': 'Role key is required',
   }

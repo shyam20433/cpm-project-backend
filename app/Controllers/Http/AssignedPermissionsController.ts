@@ -1,5 +1,7 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import AssignedPermission from 'App/Models/AssignedPermission'
+import CheckRoleExists from 'App/Validators/Exists/CheckRoleExists'
+import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 
 import GetAssignedPermissionValidator from 'App/Validators/AssignedPermission/GetAssignedPermissionValidator'
 import CreateAssignedPermissionValidator from 'App/Validators/AssignedPermission/CreateAssignedPermissionValidator'
@@ -17,6 +19,8 @@ export default class AssignedPermissionsController {
 
   public async getAssignedPermission({ request, response }: HttpContextContract) {
     const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
+    await CheckPermissionExists.validate(permissionKey)
+    await CheckRoleExists.validate(roleKey)
     const assignedPermission = await AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
@@ -35,13 +39,13 @@ export default class AssignedPermissionsController {
 
   public async postAssignedPermission({ request, response }: HttpContextContract) {
     const data = await request.validate(CreateAssignedPermissionValidator)
-
+    await CheckRoleExists.validate(data.roleKey)
+    await CheckPermissionExists.validate(data.permissionKey)
     try {
       const assignedPermission = await AssignedPermission.create(data)
 
       return response.created(assignedPermission)
     } catch (error) {
-      console.log(error)
       return response.badRequest({
         message: error.message,
       })
@@ -50,7 +54,8 @@ export default class AssignedPermissionsController {
 
   public async updateAssignedPermission({ request, response }: HttpContextContract) {
     const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
-
+    await CheckPermissionExists.validate(permissionKey)
+    await CheckRoleExists.validate(roleKey)
     const assignedPermission = await AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
@@ -76,7 +81,8 @@ export default class AssignedPermissionsController {
 
   public async deleteAssignedPermission({ request, response }: HttpContextContract) {
     const { roleKey, permissionKey } = await request.validate(DeleteAssignedPermissionValidator)
-
+    await CheckPermissionExists.validate(permissionKey)
+    await CheckRoleExists.validate(roleKey)
     const assignedPermission = await AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
