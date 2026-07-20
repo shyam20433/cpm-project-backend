@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Endpoint from 'App/Models/Endpoint'
+import Permission from 'App/Models/Permission'
 
 import CreateEndpointValidator from 'App/Validators/Endpoint/CreateEndpointValidator'
 import DeleteEndpointValidator from 'App/Validators/Endpoint/DeleteEndpointValidator'
@@ -7,14 +8,17 @@ import GetEndpointValidator from 'App/Validators/Endpoint/GetEndpointValidator'
 import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValidator'
 
 export default class EndpointsController {
-  public async getEndpoints({ response }: HttpContextContract) {
-    const endpoints = await Endpoint.query().where('status', true)//.preload('permissions')
+  public async getEndpoints({ request, response }: HttpContextContract) {
+    const { status } = request.qs()
 
-    return response.ok(endpoints)
-  }
+    const query = Endpoint.query()
+    //.preload('permissions')
 
-  public async getEndpointsDisable({ response }: HttpContextContract) {
-    const endpoints = await Endpoint.query().where('status', false)
+    if (status !== undefined) {
+      query.where('status', status === 'true')
+    }
+
+    const endpoints = await query
 
     return response.ok(endpoints)
   }

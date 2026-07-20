@@ -1,7 +1,6 @@
 import Route from '@ioc:Adonis/Core/Route'
 //endpoints
 Route.get('/endpoints', 'EndpointsController.getEndpoints')
-Route.get('/endpoints/disable', 'EndpointsController.getEndpointsDisable')
 Route.get('/endpoints/:id', 'EndpointsController.getEndpoint')
 Route.post('/endpoints', 'EndpointsController.postEndpoint')
 Route.put('/endpoints/:id', 'EndpointsController.updateEndpoint')
@@ -9,7 +8,6 @@ Route.delete('/endpoints/:id', 'EndpointsController.deleteEndpoint')
 
 //roles
 Route.get('/roles', 'RolesController.getRoles')
-Route.get('/roles/disable', 'RolesController.getRolesDisable')
 Route.get('/roles/:key', 'RolesController.getRole')
 Route.post('/roles', 'RolesController.postRole')
 Route.put('/roles/:key', 'RolesController.updateRole')
@@ -17,7 +15,6 @@ Route.delete('/roles/:key', 'RolesController.deleteRole')
 
 //permissions
 Route.get('/permissions', 'PermissionsController.getPermissions')
-Route.get('/permissions/disable', 'PermissionsController.getPermissionsDisable')
 Route.get('/permissions/:key', 'PermissionsController.getPermission')
 Route.post('/permissions', 'PermissionsController.postPermission')
 Route.put('/permissions/:key', 'PermissionsController.updatePermission')

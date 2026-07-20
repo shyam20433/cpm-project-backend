@@ -30,9 +30,18 @@ export default class Endpoint extends BaseModel {
   })
   public permissions!: ManyToMany<typeof Permission>
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({
+    columnName: 'createdAt',
+    serializeAs: 'createdAt',
+    autoCreate: true,
+  })
   public createdAt!: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    columnName: 'updatedAt',
+    serializeAs: 'updatedAt',
+    autoCreate: true,
+    autoUpdate: true,
+  })
   public updatedAt!: DateTime
 }

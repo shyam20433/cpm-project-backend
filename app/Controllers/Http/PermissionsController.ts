@@ -5,15 +5,15 @@ import DeletePermissionValidator from 'App/Validators/Permission/DeletePermissio
 import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissionValidator'
 import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
 export default class PermissionsController {
-  public async getPermissions({ response }: HttpContextContract) {
-    const permissions = await Permission.query().where('status', true)
+  public async getPermissions({ response, request }: HttpContextContract) {
+    const { status } = request.qs()
+    const query = Permission.query()
     //.preload('roles')
     //.preload('endpoints')
-
-    return response.ok(permissions)
-  }
-  public async getPermissionsDisable({ response }: HttpContextContract) {
-    const permissions = await Permission.query().where('status', false)
+    if (status !== undefined) {
+      query.where('status', status === 'true')
+    }
+    const permissions = await query
 
     return response.ok(permissions)
   }

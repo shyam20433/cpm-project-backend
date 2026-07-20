@@ -46,7 +46,7 @@ export default class AssignedEndpointsController {
       const assignedEndpoint = await AssignedEndpoint.create(data)
 
       return response.created(assignedEndpoint)
-    } catch (error) {
+    } catch (error: any) {
       return response.badRequest({
         message: error.message,
       })
@@ -95,7 +95,6 @@ export default class AssignedEndpointsController {
       })
     }
     try {
-
       await assignedEndpoint.delete()
 
       return response.ok({
