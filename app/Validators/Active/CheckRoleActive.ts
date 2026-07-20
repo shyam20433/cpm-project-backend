@@ -4,7 +4,7 @@ export default class CheckRoleActive {
   public static async validate(roleKey: string) {
     const role = await Role.find(roleKey)
 
-    if(!role){
+    if (!role) {
       throw new Error('Roles not found')
     }
     if (!role?.status) {

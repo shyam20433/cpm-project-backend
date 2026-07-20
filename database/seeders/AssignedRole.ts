@@ -5,17 +5,15 @@ export default class AssignedRoleSeeder extends BaseSeeder {
     await AssignedRole.createMany([
       {
         roleKey: 'ADMIN',
-        email: 'admin@company.com'
+        email: 'admin@company.com',
       },
       {
-
         roleKey: 'MANAGER',
-        email: 'manager@company.com'
+        email: 'manager@company.com',
       },
       {
-
         roleKey: 'EMPLOYEE',
-        email: 'employee@company.com'
+        email: 'employee@company.com',
       },
     ])
     // Write your database queries inside the run method

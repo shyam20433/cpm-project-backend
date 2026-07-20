@@ -1,4 +1,4 @@
-import { schema,rules } from '@ioc:Adonis/Core/Validator'
+import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export default class CreateAssignedRoleValidator {
   public schema = schema.create({

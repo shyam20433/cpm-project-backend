@@ -1,4 +1,4 @@
-import Endpoint from "App/Models/Endpoint"
+import Endpoint from 'App/Models/Endpoint'
 
 export default class CheckEndpointExists {
   public static async validate(serviceId: number) {

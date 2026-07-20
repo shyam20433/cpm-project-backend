@@ -1,4 +1,4 @@
-import Permission from "App/Models/Permission"
+import Permission from 'App/Models/Permission'
 
 export default class CheckPermissionExists {
   public static async validate(permissionKey: string) {

@@ -5,19 +5,19 @@ export default class AssignedEndpointSeeder extends BaseSeeder {
     await AssignedEndpoint.createMany([
       {
         endpointId: 1,
-        permissionKey: 'ORDER_READ'
+        permissionKey: 'ORDER_READ',
       },
       {
         endpointId: 2,
-        permissionKey: 'ORDER_CREATE'
+        permissionKey: 'ORDER_CREATE',
       },
       {
         endpointId: 3,
-        permissionKey: 'ORDER_UPDATE'
+        permissionKey: 'ORDER_UPDATE',
       },
       {
         endpointId: 4,
-        permissionKey: 'ORDER_DELETE'
+        permissionKey: 'ORDER_DELETE',
       },
     ])
     // Write your database queries inside the run method

@@ -5,35 +5,35 @@ export default class AssignedPermissionSeeder extends BaseSeeder {
     await AssignedPermission.createMany([
       {
         roleKey: 'ADMIN',
-        permissionKey: 'ORDER_READ'
+        permissionKey: 'ORDER_READ',
       },
       {
         roleKey: 'ADMIN',
-        permissionKey: 'ORDER_CREATE'
+        permissionKey: 'ORDER_CREATE',
       },
       {
         roleKey: 'ADMIN',
-        permissionKey: 'ORDER_UPDATE'
+        permissionKey: 'ORDER_UPDATE',
       },
       {
         roleKey: 'ADMIN',
-        permissionKey: 'ORDER_DELETE'
+        permissionKey: 'ORDER_DELETE',
       },
       {
         roleKey: 'MANAGER',
-        permissionKey: 'ORDER_READ'
+        permissionKey: 'ORDER_READ',
       },
       {
         roleKey: 'MANAGER',
-        permissionKey: 'ORDER_CREATE'
+        permissionKey: 'ORDER_CREATE',
       },
       {
         roleKey: 'MANAGER',
-        permissionKey: 'ORDER_UPDATE'
+        permissionKey: 'ORDER_UPDATE',
       },
       {
         roleKey: 'EMPLOYEE',
-        permissionKey: 'ORDER_READ'
+        permissionKey: 'ORDER_READ',
       },
     ])
     // Write your database queries inside the run method
