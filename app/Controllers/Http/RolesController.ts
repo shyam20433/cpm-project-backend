@@ -7,7 +7,15 @@ import UpdateRoleValidator from 'App/Validators/Role/UpdateRoleValidator'
 
 export default class RolesController {
   public async getRoles({ response }: HttpContextContract) {
-    const roles = await Role.query().preload('permissions')
+    const roles = await Role.query().where('status', true)
+    //.preload('permissions')
+
+    return response.ok(roles)
+  }
+
+  public async getRolesDisable({ response }: HttpContextContract) {
+    const roles = await Role.query().where('status', false)
+    //.preload('permissions')
 
     return response.ok(roles)
   }
@@ -15,7 +23,8 @@ export default class RolesController {
   public async getRole({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetRoleValidator)
 
-    const role = await Role.query().where('key', key).preload('permissions').first()
+    const role = await Role.query().where('key', key).first()
+    //.preload('permissions')
 
     if (!role) {
       return response.notFound({

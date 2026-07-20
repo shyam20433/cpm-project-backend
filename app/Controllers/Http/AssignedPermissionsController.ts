@@ -67,7 +67,17 @@ export default class AssignedPermissionsController {
       })
     }
     try {
-      assignedPermission.merge(await request.validate(UpdateAssignedPermissionValidator))
+      const data = await request.validate(UpdateAssignedPermissionValidator)
+
+      if (data.roleKey) {
+        await CheckRoleExists.validate(data.roleKey)
+      }
+
+      if (data.permissionKey) {
+        await CheckPermissionExists.validate(data.permissionKey)
+      }
+
+      assignedPermission.merge(data)
 
       await assignedPermission.save()
 

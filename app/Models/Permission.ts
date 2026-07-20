@@ -22,24 +22,24 @@ export default class Permission extends BaseModel {
   @manyToMany(() => Role, {
     pivotTable: 'assigned_permissions',
     localKey: 'key',
-    pivotForeignKey: 'permission_key',
+    pivotForeignKey: 'permissionKey',
     relatedKey: 'key',
-    pivotRelatedForeignKey: 'role_key',
+    pivotRelatedForeignKey: 'roleKey',
   })
   public roles!: ManyToMany<typeof Role>
 
   @manyToMany(() => Endpoint, {
     pivotTable: 'assigned_endpoints',
     localKey: 'key',
-    pivotForeignKey: 'permission_key',
+    pivotForeignKey: 'permissionKey',
     relatedKey: 'id',
-    pivotRelatedForeignKey: 'endpoint_id',
+    pivotRelatedForeignKey: 'endpointId',
   })
   public endpoints!: ManyToMany<typeof Endpoint>
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, columnName: 'createdAt' })
   public createdAt!: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, columnName: 'updatedAt' })
   public updatedAt!: DateTime
 }

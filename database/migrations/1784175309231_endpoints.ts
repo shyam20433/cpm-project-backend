@@ -9,10 +9,10 @@ export default class Endpoints extends BaseSchema {
       table.enum('method', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).notNullable()
       table.string('route').notNullable()
       table.unique(['method', 'route'])
-      table.integer('service_id').notNullable().unsigned()
+      table.integer('serviceId').notNullable().unsigned()
       table.boolean('status').defaultTo(true)
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
+      table.timestamp('createdAt', { useTz: true })
+      table.timestamp('updatedAt', { useTz: true })
     })
   }
   public async down() {

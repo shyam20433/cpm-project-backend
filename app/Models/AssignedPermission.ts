@@ -7,10 +7,10 @@ import Permission from './Permission'
 export default class AssignedPermission extends BaseModel {
   public static table = 'assigned_permissions'
 
-  @column({ isPrimary: true, columnName: 'role_key' })
+  @column({ isPrimary: true, columnName: 'roleKey' })
   public roleKey!: string
 
-  @column({ isPrimary: true, columnName: 'permission_key' })
+  @column({ isPrimary: true, columnName: 'permissionKey' })
   public permissionKey!: string
 
   @belongsTo(() => Role, {
@@ -25,9 +25,9 @@ export default class AssignedPermission extends BaseModel {
   })
   public permission!: BelongsTo<typeof Permission>
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, columnName: 'createdAt' })
   public createdAt!: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, columnName: 'updatedAt' })
   public updatedAt!: DateTime
 }

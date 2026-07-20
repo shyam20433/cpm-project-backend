@@ -1,4 +1,3 @@
-import { Request } from '@adonisjs/core/build/standalone'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Endpoint from 'App/Models/Endpoint'
 
@@ -9,14 +8,20 @@ import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValid
 
 export default class EndpointsController {
   public async getEndpoints({ response }: HttpContextContract) {
-    const endpoints = await Endpoint.query()
+    const endpoints = await Endpoint.query().where('status', true)//.preload('permissions')
+
+    return response.ok(endpoints)
+  }
+
+  public async getEndpointsDisable({ response }: HttpContextContract) {
+    const endpoints = await Endpoint.query().where('status', false)
 
     return response.ok(endpoints)
   }
 
   public async getEndpoint({ response, request }: HttpContextContract) {
     const { id } = await request.validate(GetEndpointValidator)
-    const endpoint = await Endpoint.query().where('id',id).first()
+    const endpoint = await Endpoint.query().where('id', id).where('status', true).first()
 
     if (!endpoint) {
       return response.notFound({ message: 'Endpoint not found' })
@@ -31,12 +36,14 @@ export default class EndpointsController {
       const endpoint = await Endpoint.create(data)
       return response.created(endpoint)
     } catch (error) {
-      return response.badRequest({ message: error.message })
+      return response.notAcceptable({
+        message: 'Endpoint already exists',
+      })
     }
   }
 
   public async updateEndpoint({ request, response }: HttpContextContract) {
-     const { id } = await request.validate(GetEndpointValidator)
+    const { id } = await request.validate(GetEndpointValidator)
     const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {
@@ -53,8 +60,8 @@ export default class EndpointsController {
     }
   }
 
-  public async deleteEndpoint({request,response }: HttpContextContract) {
-     const { id } = await request.validate(DeleteEndpointValidator)
+  public async deleteEndpoint({ request, response }: HttpContextContract) {
+    const { id } = await request.validate(DeleteEndpointValidator)
     const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {

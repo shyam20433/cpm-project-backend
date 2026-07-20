@@ -5,11 +5,11 @@ export default class AssignedEndpoints extends BaseSchema {
 
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.integer('endpoint_id').unsigned().references('id').inTable('endpoints').notNullable()
-      table.string('permission_key').references('key').inTable('permissions').notNullable()
-      table.primary(['endpoint_id', 'permission_key'])
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
+      table.integer('endpointId').unsigned().references('id').inTable('endpoints').notNullable()
+      table.string('permissionKey').references('key').inTable('permissions').notNullable()
+      table.primary(['endpointId', 'permissionKey'])
+      table.timestamp('createdAt', { useTz: true })
+      table.timestamp('updatedAt', { useTz: true })
     })
   }
 

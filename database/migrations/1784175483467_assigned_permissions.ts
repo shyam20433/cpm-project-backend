@@ -5,13 +5,13 @@ export default class AssignedPermissions extends BaseSchema {
 
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.string('role_key').references('key').inTable('roles').notNullable()
+      table.string('roleKey').references('key').inTable('roles').notNullable()
 
-      table.string('permission_key').references('key').inTable('permissions').notNullable()
+      table.string('permissionKey').references('key').inTable('permissions').notNullable()
 
-      table.primary(['role_key', 'permission_key'])
-      table.timestamp('created_at', { useTz: true })
-      table.timestamp('updated_at', { useTz: true })
+      table.primary(['roleKey', 'permissionKey'])
+      table.timestamp('createdAt', { useTz: true })
+      table.timestamp('updatedAt', { useTz: true })
     })
   }
 

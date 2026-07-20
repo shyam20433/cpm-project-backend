@@ -9,7 +9,7 @@ export default class AssignedRole extends BaseModel {
   @column({ isPrimary: true })
   public id!: number
 
-  @column({ columnName: 'role_key' })
+  @column({ columnName: 'roleKey' })
   public roleKey!: string
 
   @column()
@@ -21,9 +21,9 @@ export default class AssignedRole extends BaseModel {
   })
   public role!: BelongsTo<typeof Role>
 
-  @column.dateTime({ autoCreate: true })
+  @column.dateTime({ autoCreate: true, columnName: 'createdAt' })
   public createdAt!: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({ autoCreate: true, autoUpdate: true, columnName: 'updatedAt' })
   public updatedAt!: DateTime
 }

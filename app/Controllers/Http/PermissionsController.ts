@@ -6,18 +6,23 @@ import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissio
 import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
 export default class PermissionsController {
   public async getPermissions({ response }: HttpContextContract) {
-    const permissions = await Permission.query().preload('roles').preload('endpoints')
+    const permissions = await Permission.query().where('status', true)
+    //.preload('roles')
+    //.preload('endpoints')
+
+    return response.ok(permissions)
+  }
+  public async getPermissionsDisable({ response }: HttpContextContract) {
+    const permissions = await Permission.query().where('status', false)
 
     return response.ok(permissions)
   }
 
   public async getPermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetPermissionValidator)
-    const permission = await Permission.query()
-      .where('key', key)
-      .preload('roles')
-      .preload('endpoints')
-      .first()
+    const permission = await Permission.query().where('key', key).first()
+    //.preload('roles')
+    //.preload('endpoints')
 
     if (!permission) {
       return response.notFound({
