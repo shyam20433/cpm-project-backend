@@ -8,9 +8,18 @@ import DeleteAssignedRoleValidator from 'App/Validators/AssignedRole/DeleteAssig
 import CheckRoleExists from 'App/Validators/Exists/CheckRoleExists'
 
 export default class AssignedRolesController {
-  public async getAssignedRoles({ response }: HttpContextContract) {
-    const assignedRoles = await AssignedRole.query().preload('role')
-
+  public async getAssignedRoles({ request, response }: HttpContextContract) {
+    const { sort } = request.qs()
+    const query = AssignedRole.query().preload('role')
+    const allowedSorts = ['id', 'email', 'roleKey']
+    if (sort) {
+      const direction = sort.startsWith('-') ? 'desc' : 'asc'
+      const column = sort.startsWith('-') ? sort.substring(1) : sort
+      if (allowedSorts.includes(column)) {
+        query.orderBy(column, direction)
+      }
+    }
+    const assignedRoles = await query
     return response.ok(assignedRoles)
   }
 

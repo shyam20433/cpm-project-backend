@@ -9,10 +9,23 @@ import DeleteAssignedPermissionValidator from 'App/Validators/AssignedPermission
 import UpdateAssignedPermissionValidator from 'App/Validators/AssignedPermission/UpdateAssignedPermissionValidator'
 
 export default class AssignedPermissionsController {
-  public async getAssignedPermissions({ response }: HttpContextContract) {
-    const assignedPermissions = await AssignedPermission.query()
-      .preload('role')
-      .preload('permission')
+  public async getAssignedPermissions({ request, response }: HttpContextContract) {
+    const { sort } = request.qs()
+
+    const query = AssignedPermission.query().preload('role').preload('permission')
+
+    const allowedSorts = ['roleKey', 'permissionKey']
+
+    if (sort) {
+      const direction = sort.startsWith('-') ? 'desc' : 'asc'
+      const column = sort.startsWith('-') ? sort.substring(1) : sort
+
+      if (allowedSorts.includes(column)) {
+        query.orderBy(column, direction)
+      }
+    }
+
+    const assignedPermissions = await query
 
     return response.ok(assignedPermissions)
   }

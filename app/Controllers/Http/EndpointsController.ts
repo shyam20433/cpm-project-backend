@@ -9,13 +9,20 @@ import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValid
 
 export default class EndpointsController {
   public async getEndpoints({ request, response }: HttpContextContract) {
-    const { status } = request.qs()
+    const { status, sort } = request.qs()
 
     const query = Endpoint.query()
     //.preload('permissions')
 
     if (status !== undefined) {
       query.where('status', status === 'true')
+    }
+    if (sort) {
+      if (sort.startsWith('-')) {
+        query.orderBy(sort.substring(1), 'desc')
+      } else {
+        query.orderBy(sort, 'asc')
+      }
     }
 
     const endpoints = await query

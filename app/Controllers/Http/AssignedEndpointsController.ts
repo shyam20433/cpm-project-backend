@@ -8,14 +8,22 @@ import UpdateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/Upd
 import CheckEndpointExists from 'App/Validators/Exists/CheckEndpointExists'
 import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 export default class AssignedEndpointsController {
-  public async getAssignedEndpoints({ response }: HttpContextContract) {
-    const assignedEndpoints = await AssignedEndpoint.query()
-      .preload('endpoint')
-      .preload('permission')
+  public async getAssignedEndpoints({ request, response }: HttpContextContract) {
+    const { sort } = request.qs()
+    const query = AssignedEndpoint.query().preload('endpoint').preload('permission')
+    const allowedSorts = ['endpointId', 'permissionKey']
+    if (sort) {
+      const direction = sort.startsWith('-') ? 'desc' : 'asc'
+      const column = sort.startsWith('-') ? sort.substring(1) : sort
+      if (allowedSorts.includes(column)) {
+        query.orderBy(column, direction)
+      }
+    }
+
+    const assignedEndpoints = await query
 
     return response.ok(assignedEndpoints)
   }
-
   public async getAssignedEndpoint({ request, response }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
 

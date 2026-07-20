@@ -6,12 +6,19 @@ import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissio
 import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
 export default class PermissionsController {
   public async getPermissions({ response, request }: HttpContextContract) {
-    const { status } = request.qs()
+    const { status, sort } = request.qs()
     const query = Permission.query()
     //.preload('roles')
     //.preload('endpoints')
     if (status !== undefined) {
       query.where('status', status === 'true')
+    }
+    if (sort) {
+      if (sort.startsWith('-')) {
+        query.orderBy(sort.substring(1), 'desc')
+      } else {
+        query.orderBy(sort, 'asc')
+      }
     }
     const permissions = await query
 
