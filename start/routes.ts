@@ -1,6 +1,7 @@
 import Route from '@ioc:Adonis/Core/Route'
 //endpoints
 Route.get('/endpoints', 'EndpointsController.getEndpoints')
+Route.post('/endpoints/access-details', 'EndpointsController.getAccessDetails')
 Route.get('/endpoints/:id', 'EndpointsController.getEndpoint')
 Route.post('/endpoints', 'EndpointsController.postEndpoint')
 Route.put('/endpoints/:id', 'EndpointsController.updateEndpoint')

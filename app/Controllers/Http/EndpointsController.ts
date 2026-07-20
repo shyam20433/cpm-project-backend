@@ -1,8 +1,13 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import AssignedEndpoint from 'App/Models/AssignedEndpoint'
+import AssignedPermission from 'App/Models/AssignedPermission'
+import AssignedRole from 'App/Models/AssignedRole'
 import Endpoint from 'App/Models/Endpoint'
+import Permission from 'App/Models/Permission'
 
 import CreateEndpointValidator from 'App/Validators/Endpoint/CreateEndpointValidator'
 import DeleteEndpointValidator from 'App/Validators/Endpoint/DeleteEndpointValidator'
+import GetAccessDetailsValidator from 'App/Validators/Endpoint/GetAccessDetailsValidator'
 import GetEndpointValidator from 'App/Validators/Endpoint/GetEndpointValidator'
 import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValidator'
 
@@ -96,6 +101,48 @@ export default class EndpointsController {
       })
     } catch (error: any) {
       return response.badRequest({ message: error.messages || error.message })
+    }
+  }
+  public async getAccessDetails({ request, response }: HttpContextContract) {
+    try {
+      const data = await request.validate(GetAccessDetailsValidator)
+      const endpoint = await Endpoint.query()
+        .where('serviceId', data.service_id)
+        .where('method', data.method)
+        .where('route', data.route)
+        .first()
+
+      if (!endpoint) {
+        return response.notFound({
+          message: 'Endpoint not found',
+        })
+      }
+
+      const assignedEndpoints = await AssignedEndpoint.query()
+        .where('endpointId', endpoint.id)
+        .preload('permission', (query) => query.select('key', 'name', 'description', 'status'))
+
+      const permissionKeys = assignedEndpoints.map((item) => item.permissionKey)
+      const assignedPermissions = await AssignedPermission.query()
+        .whereIn('permissionKey', permissionKeys)
+        .preload('role', (query) => query.select('key', 'name', 'description', 'status'))
+
+      const roleKeys = [...new Set(assignedPermissions.map((item) => item.roleKey))]
+
+      const assignedRoles = await AssignedRole.query()
+        .whereIn('roleKey', roleKeys)
+        .select('id', 'roleKey', 'email')
+
+      return response.ok({
+        endpoint,
+        permissions: assignedEndpoints.map((item) => item.permission),
+        roles: assignedPermissions.map((item) => item.role),
+        users: assignedRoles,
+      })
+    } catch (error: any) {
+      return response.badRequest({
+        message: error.message || error.messages,
+      })
     }
   }
 }
