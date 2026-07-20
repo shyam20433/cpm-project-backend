@@ -26,7 +26,7 @@ export default class PermissionsController {
       return response.ok(permissions)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -47,7 +47,7 @@ export default class PermissionsController {
       return response.ok(permission)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -83,7 +83,7 @@ export default class PermissionsController {
       return response.ok(permission)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -108,7 +108,7 @@ export default class PermissionsController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }

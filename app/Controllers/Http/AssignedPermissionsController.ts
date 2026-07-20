@@ -41,7 +41,7 @@ export default class AssignedPermissionsController {
       return response.ok(assignedPermissions)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -70,7 +70,7 @@ export default class AssignedPermissionsController {
       return response.ok(assignedPermission)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -87,7 +87,7 @@ export default class AssignedPermissionsController {
       return response.created(assignedPermission)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -127,7 +127,7 @@ export default class AssignedPermissionsController {
       return response.ok(assignedPermission)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -157,7 +157,7 @@ export default class AssignedPermissionsController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }

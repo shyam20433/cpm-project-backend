@@ -29,7 +29,7 @@ export default class EndpointsController {
 
       return response.ok(endpoints)
     } catch (error: any) {
-      return response.badRequest({ message: error.messages })
+      return response.badRequest({ message: error.messages || error.message })
     }
   }
 
@@ -44,7 +44,7 @@ export default class EndpointsController {
 
       return response.ok(endpoint)
     } catch (error: any) {
-      return response.badRequest({ message: error.messages })
+      return response.badRequest({ message: error.messages || error.message })
     }
   }
 
@@ -74,7 +74,7 @@ export default class EndpointsController {
 
       return response.ok(endpoint)
     } catch (error: any) {
-      return response.badRequest({ message: error.messages })
+      return response.badRequest({ message: error.messages || error.message })
     }
   }
 
@@ -95,7 +95,7 @@ export default class EndpointsController {
         message: 'Endpoint disabled successfully',
       })
     } catch (error: any) {
-      return response.badRequest({ message: error.messages })
+      return response.badRequest({ message: error.messages || error.message })
     }
   }
 }

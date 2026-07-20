@@ -26,7 +26,7 @@ export default class RolesController {
       return response.ok(roles)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -39,7 +39,7 @@ export default class RolesController {
       return response.ok(roles)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -60,7 +60,7 @@ export default class RolesController {
       return response.ok(role)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -96,7 +96,7 @@ export default class RolesController {
       return response.ok(role)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -121,7 +121,7 @@ export default class RolesController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }

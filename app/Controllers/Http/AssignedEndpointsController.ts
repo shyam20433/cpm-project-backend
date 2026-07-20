@@ -36,7 +36,7 @@ export default class AssignedEndpointsController {
       return response.ok(assignedEndpoints)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -65,7 +65,7 @@ export default class AssignedEndpointsController {
       return response.ok(assignedEndpoint)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -83,7 +83,7 @@ export default class AssignedEndpointsController {
       return response.created(assignedEndpoint)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -126,7 +126,7 @@ export default class AssignedEndpointsController {
       return response.ok(assignedEndpoint)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
@@ -155,7 +155,7 @@ export default class AssignedEndpointsController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages,
+        message: error.messages || error.message,
       })
     }
   }
