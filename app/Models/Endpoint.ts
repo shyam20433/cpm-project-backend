@@ -14,8 +14,9 @@ export default class Endpoint extends BaseModel {
 
   @column()
   public route!: string
-
-  @column()
+  @column({
+    columnName: 'serviceId',
+  })
   public serviceId!: number
 
   @column()

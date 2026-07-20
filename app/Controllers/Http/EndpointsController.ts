@@ -1,6 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Endpoint from 'App/Models/Endpoint'
-import Permission from 'App/Models/Permission'
 
 import CreateEndpointValidator from 'App/Validators/Endpoint/CreateEndpointValidator'
 import DeleteEndpointValidator from 'App/Validators/Endpoint/DeleteEndpointValidator'
@@ -9,36 +8,44 @@ import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValid
 
 export default class EndpointsController {
   public async getEndpoints({ request, response }: HttpContextContract) {
-    const { status, sort } = request.qs()
+    try {
+      const { status, sort } = request.qs()
 
-    const query = Endpoint.query()
-    //.preload('permissions')
+      const query = Endpoint.query()
+      //.preload('permissions')
 
-    if (status !== undefined) {
-      query.where('status', status === 'true')
-    }
-    if (sort) {
-      if (sort.startsWith('-')) {
-        query.orderBy(sort.substring(1), 'desc')
-      } else {
-        query.orderBy(sort, 'asc')
+      if (status !== undefined) {
+        query.where('status', status === 'true')
       }
+      if (sort) {
+        if (sort.startsWith('-')) {
+          query.orderBy(sort.substring(1), 'desc')
+        } else {
+          query.orderBy(sort, 'asc')
+        }
+      }
+
+      const endpoints = await query
+
+      return response.ok(endpoints)
+    } catch (error: any) {
+      return response.badRequest({ message: error.messages })
     }
-
-    const endpoints = await query
-
-    return response.ok(endpoints)
   }
 
   public async getEndpoint({ response, request }: HttpContextContract) {
     const { id } = await request.validate(GetEndpointValidator)
-    const endpoint = await Endpoint.query().where('id', id).where('status', true).first()
+    try {
+      const endpoint = await Endpoint.query().where('id', id).where('status', true).first()
 
-    if (!endpoint) {
-      return response.notFound({ message: 'Endpoint not found' })
+      if (!endpoint) {
+        return response.notFound({ message: 'Endpoint not found' })
+      }
+
+      return response.ok(endpoint)
+    } catch (error: any) {
+      return response.badRequest({ message: error.messages })
     }
-
-    return response.ok(endpoint)
   }
 
   public async postEndpoint({ request, response }: HttpContextContract) {
@@ -66,8 +73,8 @@ export default class EndpointsController {
       await endpoint.save()
 
       return response.ok(endpoint)
-    } catch (error) {
-      return response.badRequest({ message: error.message })
+    } catch (error: any) {
+      return response.badRequest({ message: error.messages })
     }
   }
 
@@ -79,12 +86,16 @@ export default class EndpointsController {
       return response.notFound({ message: 'Endpoint not found' })
     }
 
-    endpoint.status = false
+    try {
+      endpoint.status = false
 
-    await endpoint.save()
+      await endpoint.save()
 
-    return response.ok({
-      message: 'Endpoint disabled successfully',
-    })
+      return response.ok({
+        message: 'Endpoint disabled successfully',
+      })
+    } catch (error: any) {
+      return response.badRequest({ message: error.messages })
+    }
   }
 }
