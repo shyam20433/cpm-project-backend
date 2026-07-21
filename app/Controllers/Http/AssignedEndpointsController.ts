@@ -33,7 +33,11 @@ export default class AssignedEndpointsController {
 
       const assignedEndpoints = await query
 
-      return response.ok(assignedEndpoints)
+      return response.status(200).send({
+        success: true,
+        message: 'assigned endpoints fetched successfully',
+        data: assignedEndpoints,
+      })
     } catch (error: any) {
       return response.badRequest({
         message: error.messages || error.message,
@@ -62,7 +66,11 @@ export default class AssignedEndpointsController {
         })
       }
 
-      return response.ok(assignedEndpoint)
+      return response.status(200).send({
+        success: true,
+        message: 'assigned endpoint fetched successfully',
+        data: assignedEndpoint,
+      })
     } catch (error: any) {
       return response.badRequest({
         message: error.messages || error.message,
@@ -123,7 +131,11 @@ export default class AssignedEndpointsController {
 
       await assignedEndpoint.save()
 
-      return response.ok(assignedEndpoint)
+      return response.status(200).send({
+        success: true,
+        message: 'assigned endpoint updated successfully',
+        data: assignedEndpoint,
+      })
     } catch (error: any) {
       return response.badRequest({
         message: error.messages || error.message,
@@ -150,8 +162,9 @@ export default class AssignedEndpointsController {
     try {
       await assignedEndpoint.delete()
 
-      return response.ok({
-        message: 'Assigned endpoint deleted successfully',
+      return response.status(200).send({
+        success: true,
+        message: 'assigned endpoint deleted successfully',
       })
     } catch (error: any) {
       return response.badRequest({

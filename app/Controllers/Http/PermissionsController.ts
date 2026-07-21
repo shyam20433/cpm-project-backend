@@ -1,114 +1,112 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Permission from 'App/Models/Permission'
+
+import PermissionService from 'App/Services/PermissionService'
+
 import CreatePermissionValidator from 'App/Validators/Permission/CreatePermissionValidator'
 import DeletePermissionValidator from 'App/Validators/Permission/DeletePermissionValidator'
 import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissionValidator'
 import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
-export default class PermissionsController {
-  public async getPermissions({ response, request }: HttpContextContract) {
-    try {
-      const { status, sort } = request.qs()
-      const query = Permission.query()
-      //.preload('roles')
-      //.preload('endpoints')
-      if (status !== undefined) {
-        query.where('status', status === 'true')
-      }
-      if (sort) {
-        if (sort.startsWith('-')) {
-          query.orderBy(sort.substring(1), 'desc')
-        } else {
-          query.orderBy(sort, 'asc')
-        }
-      }
-      const permissions = await query
 
-      return response.ok(permissions)
+export default class PermissionsController {
+  private permissionService = new PermissionService()
+  public async getPermissions({ request, response }: HttpContextContract) {
+    try {
+      const permissions = await this.permissionService.getPermissions(request.qs())
+
+      return response.status(200).send({
+        success: true,
+        message: 'permissions fetched successfully',
+        data: permissions,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch permissions',
+        error: error.messages || error.message,
       })
     }
   }
-
   public async getPermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetPermissionValidator)
     try {
-      const permission = await Permission.query().where('key', key).first()
-      //.preload('roles')
-      //.preload('endpoints')
-
+      const permission = await this.permissionService.getPermission(key)
       if (!permission) {
         return response.notFound({
+          success: false,
           message: 'Permission not found',
         })
       }
-
-      return response.ok(permission)
+      return response.status(200).send({
+        success: true,
+        message: 'permission fetched successfully',
+        data: permission,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch permission',
+        error: error.messages || error.message,
       })
     }
   }
 
   public async postPermission({ request, response }: HttpContextContract) {
     const data = await request.validate(CreatePermissionValidator)
-
     try {
-      const permission = await Permission.create(data)
-
+      const permission = await this.permissionService.createPermission(data)
       return response.created(permission)
     } catch (error: any) {
       return response.notAcceptable({
-        message: 'Permission already exists',
+        success: false,
+        message: 'Failed to create permission',
+        error: error.messages || error.message,
       })
     }
   }
-
   public async updatePermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetPermissionValidator)
-    const permission = await Permission.find(key)
-
-    if (!permission) {
-      return response.notFound({
-        message: 'Permission not found',
-      })
-    }
+    const data = await request.validate(UpdatePermissionValidator)
     try {
-      permission.merge(await request.validate(UpdatePermissionValidator))
+      const permission = await this.permissionService.updatePermission(key, data)
 
-      await permission.save()
-
-      return response.ok(permission)
+      if (!permission) {
+        return response.notFound({
+          success: false,
+          message: 'Permission not found',
+        })
+      }
+      return response.status(200).send({
+        success: true,
+        message: 'permission updated successfully',
+        data: permission,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to update permission',
+        error: error.messages || error.message,
       })
     }
   }
-
   public async deletePermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(DeletePermissionValidator)
-    const permission = await Permission.find(key)
-
-    if (!permission) {
-      return response.notFound({
-        message: 'Permission not found',
-      })
-    }
-
     try {
-      permission.status = false
-
-      await permission.save()
-
-      return response.ok({
-        message: 'Permission disabled successfully',
+      const permission = await this.permissionService.disablePermission(key)
+      if (!permission) {
+        return response.notFound({
+          success: false,
+          message: 'Permission not found',
+        })
+      }
+      return response.status(200).send({
+        success: true,
+        message: 'permission disabled successfully',
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to disable permission',
+        error: error.messages || error.message,
       })
     }
   }

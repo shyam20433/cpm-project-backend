@@ -26,10 +26,16 @@ export default class AssignedRolesController {
         }
       }
       const assignedRoles = await query
-      return response.ok(assignedRoles)
+      return response.status(200).send({
+        success: true,
+        message: 'assigned roles fetched successfully',
+        data: assignedRoles,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch assigned roles',
+        error: error.messages || error.message,
       })
     }
   }
@@ -41,6 +47,7 @@ export default class AssignedRolesController {
 
       if (!assignedRole) {
         return response.notFound({
+          success: false,
           message: 'Assigned role not found',
         })
       }
@@ -49,10 +56,16 @@ export default class AssignedRolesController {
 
       await assignedRole.load('role')
 
-      return response.ok(assignedRole)
+      return response.status(200).send({
+        success: true,
+        message: 'assigned role fetched successfully',
+        data: assignedRole,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch assigned role',
+        error: error.messages || error.message,
       })
     }
   }
@@ -67,7 +80,9 @@ export default class AssignedRolesController {
       return response.created(assignedRole)
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to assign role',
+        error: error.messages || error.message,
       })
     }
   }
@@ -78,6 +93,7 @@ export default class AssignedRolesController {
 
     if (!assignedRole) {
       return response.notFound({
+        success: false,
         message: 'Assigned role not found',
       })
     }
@@ -94,10 +110,16 @@ export default class AssignedRolesController {
 
       await assignedRole.save()
 
-      return response.ok(assignedRole)
+      return response.status(200).send({
+        success: true,
+        message: 'assigned role updated successfully',
+        data: assignedRole,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to update assigned role',
+        error: error.messages || error.message,
       })
     }
   }
@@ -109,6 +131,7 @@ export default class AssignedRolesController {
 
     if (!assignedRole) {
       return response.notFound({
+        success: false,
         message: 'Assigned role not found',
       })
     }
@@ -118,12 +141,15 @@ export default class AssignedRolesController {
       await CheckRoleActive.validate(assignedRole.roleKey)
       await assignedRole.delete()
 
-      return response.ok({
-        message: 'Assigned role deleted successfully',
+      return response.status(200).send({
+        success: true,
+        message: 'assigned role deleted successfully',
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to delete assigned role',
+        error: error.messages || error.message,
       })
     }
   }

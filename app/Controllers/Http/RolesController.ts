@@ -23,10 +23,16 @@ export default class RolesController {
       }
       const roles = await query
 
-      return response.ok(roles)
+      return response.status(200).send({
+        success: true,
+        message: 'roles fetched successfully',
+        data: roles,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch roles',
+        error: error.messages || error.message,
       })
     }
   }
@@ -36,10 +42,16 @@ export default class RolesController {
       const roles = await Role.query().where('status', false)
       //.preload('permissions')
 
-      return response.ok(roles)
+      return response.status(200).send({
+        success: true,
+        message: 'roles fetched successfully',
+        data: roles,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch disabled roles',
+        error: error.messages || error.message,
       })
     }
   }
@@ -53,14 +65,21 @@ export default class RolesController {
 
       if (!role) {
         return response.notFound({
+          success: false,
           message: 'Role not found',
         })
       }
 
-      return response.ok(role)
+      return response.status(200).send({
+        success: true,
+        message: 'role fetched successfully',
+        data: role,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch role',
+        error: error.messages || error.message,
       })
     }
   }
@@ -74,7 +93,9 @@ export default class RolesController {
       return response.created(role)
     } catch (error: any) {
       return response.notAcceptable({
+        success: false,
         message: 'Role already exists',
+        error: error.messages || error.message,
       })
     }
   }
@@ -85,6 +106,7 @@ export default class RolesController {
 
     if (!role) {
       return response.notFound({
+        success: false,
         message: 'Role not found',
       })
     }
@@ -93,10 +115,16 @@ export default class RolesController {
 
       await role.save()
 
-      return response.ok(role)
+      return response.status(200).send({
+        success: true,
+        message: 'role updated successfully',
+        data: role,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to update role',
+        error: error.messages || error.message,
       })
     }
   }
@@ -107,6 +135,7 @@ export default class RolesController {
 
     if (!role) {
       return response.notFound({
+        success: false,
         message: 'Role not found',
       })
     }
@@ -116,12 +145,15 @@ export default class RolesController {
 
       await role.save()
 
-      return response.ok({
-        message: 'Role disabled successfully',
+      return response.status(200).send({
+        success: true,
+        message: 'role disabled successfully',
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to disable role',
+        error: error.messages || error.message,
       })
     }
   }

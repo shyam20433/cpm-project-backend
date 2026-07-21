@@ -27,9 +27,14 @@ export default class Role extends BaseModel {
   })
   public permissions!: ManyToMany<typeof Permission>
 
-  @column.dateTime({ autoCreate: true, columnName: 'createdAt' })
+  @column.dateTime({ autoCreate: true, columnName: 'createdAt', serializeAs: 'createdAt' })
   public createdAt!: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true, columnName: 'updatedAt' })
+  @column.dateTime({
+    autoCreate: true,
+    autoUpdate: true,
+    columnName: 'updatedAt',
+    serializeAs: 'updatedAt',
+  })
   public updatedAt!: DateTime
 }
