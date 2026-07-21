@@ -3,7 +3,6 @@ import AssignedEndpoint from 'App/Models/AssignedEndpoint'
 import AssignedPermission from 'App/Models/AssignedPermission'
 import AssignedRole from 'App/Models/AssignedRole'
 import Endpoint from 'App/Models/Endpoint'
-import Permission from 'App/Models/Permission'
 
 import CreateEndpointValidator from 'App/Validators/Endpoint/CreateEndpointValidator'
 import DeleteEndpointValidator from 'App/Validators/Endpoint/DeleteEndpointValidator'
@@ -32,9 +31,17 @@ export default class EndpointsController {
 
       const endpoints = await query
 
-      return response.ok(endpoints)
+      return response.status(200).send({
+        success: true,
+        message: 'endpoints fetched successfully',
+        data: endpoints,
+      })
     } catch (error: any) {
-      return response.badRequest({ message: error.messages || error.message })
+      return response.badRequest({
+        success: false,
+        message: 'Failed to fetch endpoints',
+        error: error.messages || error.message,
+      })
     }
   }
 
@@ -44,12 +51,23 @@ export default class EndpointsController {
       const endpoint = await Endpoint.query().where('id', id).where('status', true).first()
 
       if (!endpoint) {
-        return response.notFound({ message: 'Endpoint not found' })
+        return response.notFound({
+          success: false,
+          message: 'Endpoint not found',
+        })
       }
 
-      return response.ok(endpoint)
+      return response.status(200).send({
+        success: true,
+        message: 'endpoint fetched successfully',
+        data: endpoint,
+      })
     } catch (error: any) {
-      return response.badRequest({ message: error.messages || error.message })
+      return response.badRequest({
+        success: false,
+        message: 'Failed to fetch endpoint',
+        error: error.messages || error.message,
+      })
     }
   }
 
@@ -58,9 +76,11 @@ export default class EndpointsController {
     try {
       const endpoint = await Endpoint.create(data)
       return response.created(endpoint)
-    } catch (error) {
+    } catch (error: any) {
       return response.notAcceptable({
+        success: false,
         message: 'Endpoint already exists',
+        error: error.messages || error.message,
       })
     }
   }
@@ -70,16 +90,27 @@ export default class EndpointsController {
     const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {
-      return response.notFound({ message: 'Endpoint not found' })
+      return response.notFound({
+        success: false,
+        message: 'Endpoint not found',
+      })
     }
     try {
       endpoint.merge(await request.validate(UpdateEndpointValidator))
 
       await endpoint.save()
 
-      return response.ok(endpoint)
+      return response.status(200).send({
+        success: true,
+        message: 'endpoint updated successfully',
+        data: endpoint,
+      })
     } catch (error: any) {
-      return response.badRequest({ message: error.messages || error.message })
+      return response.badRequest({
+        success: false,
+        message: 'Failed to update endpoint',
+        error: error.messages || error.message,
+      })
     }
   }
 
@@ -88,7 +119,10 @@ export default class EndpointsController {
     const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {
-      return response.notFound({ message: 'Endpoint not found' })
+      return response.notFound({
+        success: false,
+        message: 'Endpoint not found',
+      })
     }
 
     try {
@@ -96,24 +130,33 @@ export default class EndpointsController {
 
       await endpoint.save()
 
-      return response.ok({
-        message: 'Endpoint disabled successfully',
+      return response.status(200).send({
+        success: true,
+        message: 'endpoint disabled successfully',
       })
     } catch (error: any) {
-      return response.badRequest({ message: error.messages || error.message })
+      return response.badRequest({
+        success: false,
+        message: 'Failed to disable endpoint',
+        error: error.messages || error.message,
+      })
     }
   }
   public async getAccessDetails({ request, response }: HttpContextContract) {
     try {
       const data = await request.validate(GetAccessDetailsValidator)
+
+      const includeAll = data.include === 'all'
+
       const endpoint = await Endpoint.query()
-        .where('serviceId', data.service_id)
+        .where('serviceId', data.serviceId)
         .where('method', data.method)
         .where('route', data.route)
         .first()
 
       if (!endpoint) {
         return response.notFound({
+          success: false,
           message: 'Endpoint not found',
         })
       }
@@ -123,6 +166,7 @@ export default class EndpointsController {
         .preload('permission', (query) => query.select('key', 'name', 'description', 'status'))
 
       const permissionKeys = assignedEndpoints.map((item) => item.permissionKey)
+
       const assignedPermissions = await AssignedPermission.query()
         .whereIn('permissionKey', permissionKeys)
         .preload('role', (query) => query.select('key', 'name', 'description', 'status'))
@@ -133,15 +177,38 @@ export default class EndpointsController {
         .whereIn('roleKey', roleKeys)
         .select('id', 'roleKey', 'email')
 
+      const filteredAssignedEndpoints = includeAll
+        ? assignedEndpoints
+        : assignedEndpoints.filter((item) => item.permission.status)
+
+      const filteredAssignedPermissions = includeAll
+        ? assignedPermissions
+        : assignedPermissions.filter((item) => item.role.status)
+
+      const activeRoleKeys = new Set(filteredAssignedPermissions.map((item) => item.roleKey))
+
+      const filteredAssignedRoles = includeAll
+        ? assignedRoles
+        : assignedRoles.filter((item) => activeRoleKeys.has(item.roleKey))
+
       return response.ok({
-        endpoint,
-        permissions: assignedEndpoints.map((item) => item.permission),
-        roles: assignedPermissions.map((item) => item.role),
-        users: assignedRoles,
+        success: true,
+        message: 'Access details fetched successfully',
+        data: {
+          endpoint,
+
+          permissions: filteredAssignedEndpoints.map((item) => item.permission),
+
+          roles: [...new Set(filteredAssignedPermissions.map((item) => item.role.key))],
+
+          users: [...new Set(filteredAssignedRoles.map((item) => item.email))],
+        },
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.message || error.messages,
+        success: false,
+        message: 'Failed to fetch access details',
+        error: error.messages || error.message,
       })
     }
   }
