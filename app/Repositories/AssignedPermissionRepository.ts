@@ -25,6 +25,7 @@ export default class AssignedPermissionRepository {
 
     return await query
   }
+
   public static async getAssignedPermission(roleKey: string, permissionKey: string) {
     return await AssignedPermission.query()
       .where('roleKey', roleKey)

@@ -17,7 +17,7 @@ import AssignedPermissionRepository from 'App/Repositories/AssignedPermissionRep
 export default class AssignedPermissionsController {
   public async getAssignedPermissions({ request, response }: HttpContextContract) {
     try {
-      const { sort = ' ' } = await request.validate(AssignedPermissionsValidator)
+      const { sort } = await request.validate(AssignedPermissionsValidator)
 
       const assignedPermissions = await AssignedPermissionRepository.getAssignedPermissions(sort)
 
