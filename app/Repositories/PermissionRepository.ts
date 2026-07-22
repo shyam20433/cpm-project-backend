@@ -62,7 +62,7 @@ export default class PermissionRepository {
 
     return permission
   }
-    public async enablePermission(key: string) {
+  public async enablePermission(key: string) {
     const permission = await this.findByKey(key)
 
     if (!permission) {

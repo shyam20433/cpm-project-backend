@@ -65,7 +65,6 @@ export default class RoleRepository {
     return role
   }
 
-
   public async enableRole(key: string) {
     const role = await this.findByKey(key)
 

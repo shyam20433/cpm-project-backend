@@ -16,6 +16,7 @@ export default class Endpoint extends BaseModel {
   public route!: string
   @column({
     columnName: 'serviceId',
+    serializeAs: 'serviceId',
   })
   public serviceId!: number
 
