@@ -27,7 +27,7 @@ export default class EndpointRepository {
   }
 
   public async findById(id: number) {
-    return await Endpoint.query().where('id', id).where('status', true).first()
+    return await Endpoint.query().where('id', id).first()
   }
 
   public async createEndpoint(data: any) {

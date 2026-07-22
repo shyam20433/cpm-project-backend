@@ -37,7 +37,9 @@ export default class AssignedEndpointsController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch assigned endpoints',
+        error: error.messages || error.message,
       })
     }
   }
@@ -59,6 +61,7 @@ export default class AssignedEndpointsController {
 
       if (!assignedEndpoint) {
         return response.notFound({
+          success: false,
           message: 'Assigned endpoint not found',
         })
       }
@@ -70,7 +73,9 @@ export default class AssignedEndpointsController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to fetch assigned endpoint',
+        error: error.messages || error.message,
       })
     }
   }
@@ -85,10 +90,16 @@ export default class AssignedEndpointsController {
     try {
       const assignedEndpoint = await AssignedEndpointRepository.create(data)
 
-      return response.created(assignedEndpoint)
+      return response.created({
+        success: true,
+        message: 'assigned endpoint created successfully',
+        data: assignedEndpoint,
+      })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to assign endpoint',
+        error: error.messages || error.message,
       })
     }
   }
@@ -105,6 +116,7 @@ export default class AssignedEndpointsController {
 
     if (!assignedEndpoint) {
       return response.notFound({
+        success: false,
         message: 'Assigned endpoint not found',
       })
     }
@@ -133,7 +145,9 @@ export default class AssignedEndpointsController {
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to update assigned endpoint',
+        error: error.messages || error.message,
       })
     }
   }
@@ -149,6 +163,7 @@ export default class AssignedEndpointsController {
 
     if (!assignedEndpoint) {
       return response.notFound({
+        success: false,
         message: 'Assigned endpoint not found',
       })
     }
@@ -156,13 +171,15 @@ export default class AssignedEndpointsController {
     try {
       await AssignedEndpointRepository.delete(assignedEndpoint)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned endpoint deleted successfully',
       })
     } catch (error: any) {
       return response.badRequest({
-        message: error.messages || error.message,
+        success: false,
+        message: 'Failed to delete assigned endpoint',
+        error: error.messages || error.message,
       })
     }
   }

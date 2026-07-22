@@ -47,8 +47,15 @@ export default class AssignedEndpointRepository {
   }
 
   public static async update(assignedEndpoint: AssignedEndpoint, data: any) {
+    const oldEndpointId = assignedEndpoint.endpointId
+    const oldPermissionKey = assignedEndpoint.permissionKey
+
+    await AssignedEndpoint.query()
+      .where('endpointId', oldEndpointId)
+      .where('permissionKey', oldPermissionKey)
+      .update(data)
+
     assignedEndpoint.merge(data)
-    await assignedEndpoint.save()
     return assignedEndpoint
   }
 

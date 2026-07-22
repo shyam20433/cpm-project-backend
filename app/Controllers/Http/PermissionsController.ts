@@ -17,7 +17,7 @@ export default class PermissionsController {
 
       const permissions = await this.permissionRepository.getAll(filters)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Permissions fetched successfully',
         data: permissions,
@@ -44,7 +44,7 @@ export default class PermissionsController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Permission fetched successfully',
         data: permission,
@@ -92,7 +92,7 @@ export default class PermissionsController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Permission updated successfully',
         data: permission,
@@ -119,7 +119,7 @@ export default class PermissionsController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Permission disabled successfully',
       })

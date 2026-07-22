@@ -8,7 +8,7 @@ export default class CheckRoleActive {
       throw new Error('Roles not found')
     }
     if (!role?.status) {
-      throw new Error('Role is active ')
+      throw new Error('Role is inactive')
     }
 
     return role

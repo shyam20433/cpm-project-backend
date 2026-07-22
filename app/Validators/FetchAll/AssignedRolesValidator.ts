@@ -5,11 +5,11 @@ export default class AssignedRolesValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    sort: schema.string.optional({}, [rules.regex(/^-?(endpointId|permissionKey)$/)]),
+    sort: schema.string.optional({}, [rules.regex(/^-?(id|email|roleKey)$/)]),
   })
 
   public messages = {
-    'sort.regex': 'Sort must be one of: endpointId, permissionKey, -endpointId, -permissionKey',
+    'sort.regex': 'Sort must be one of: id, email, roleKey, -id, -email, -roleKey',
   }
   public reportUnknownFields = true
   public static validateQueryParams(qs: any) {

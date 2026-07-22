@@ -54,8 +54,15 @@ export default class AssignedPermissionRepository {
   }
 
   public static async update(assignedPermission: AssignedPermission, data: any) {
+    const oldRoleKey = assignedPermission.roleKey
+    const oldPermissionKey = assignedPermission.permissionKey
+
+    await AssignedPermission.query()
+      .where('roleKey', oldRoleKey)
+      .where('permissionKey', oldPermissionKey)
+      .update(data)
+
     assignedPermission.merge(data)
-    await assignedPermission.save()
     return assignedPermission
   }
 

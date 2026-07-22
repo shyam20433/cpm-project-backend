@@ -17,7 +17,7 @@ export default class RolesController {
 
       const roles = await this.roleRepository.getAll(filters)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Roles fetched successfully',
         data: roles,
@@ -44,7 +44,7 @@ export default class RolesController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Role fetched successfully',
         data: role,
@@ -92,7 +92,7 @@ export default class RolesController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Role updated successfully',
         data: role,
@@ -119,7 +119,7 @@ export default class RolesController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'Role disabled successfully',
       })

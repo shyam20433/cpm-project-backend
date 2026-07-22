@@ -5,8 +5,6 @@ export default class CreateAssignedRoleValidator {
     email: schema.string({}, [rules.email()]),
 
     roleKey: schema.string(),
-
-    status: schema.boolean.optional(),
   })
 
   public messages = {

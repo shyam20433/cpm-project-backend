@@ -31,7 +31,7 @@ export default class AssignedRolesController {
 
       const assignedRoles = await this.assignedRoleRepository.getAll(sort)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned roles fetched successfully',
         data: assignedRoles,
@@ -63,7 +63,7 @@ export default class AssignedRolesController {
 
       await this.assignedRoleRepository.loadRole(assignedRole)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned role fetched successfully',
         data: assignedRole,
@@ -122,7 +122,7 @@ export default class AssignedRolesController {
 
       const updatedAssignedRole = await this.assignedRoleRepository.updateAssignedRole(id, data)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned role updated successfully',
         data: updatedAssignedRole,
@@ -154,7 +154,7 @@ export default class AssignedRolesController {
 
       await this.assignedRoleRepository.deleteAssignedRole(id)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned role deleted successfully',
       })

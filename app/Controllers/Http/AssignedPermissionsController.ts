@@ -30,7 +30,7 @@ export default class AssignedPermissionsController {
 
       const assignedPermissions = await AssignedPermissionRepository.getAssignedPermissions(sort)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned permissions fetched successfully',
         data: assignedPermissions,
@@ -65,7 +65,7 @@ export default class AssignedPermissionsController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned permission fetched successfully',
         data: assignedPermission,
@@ -99,7 +99,11 @@ export default class AssignedPermissionsController {
 
       const assignedPermission = await AssignedPermissionRepository.create(data)
 
-      return response.created(assignedPermission)
+      return response.created({
+        success: true,
+        message: 'assigned permission created successfully',
+        data: assignedPermission,
+      })
     } catch (error: any) {
       return response.badRequest({
         success: false,
@@ -160,7 +164,7 @@ export default class AssignedPermissionsController {
         data
       )
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned permission updated successfully',
         data: updatedAssignedPermission,
@@ -194,7 +198,7 @@ export default class AssignedPermissionsController {
 
       await AssignedPermissionRepository.delete(assignedPermission)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned permission deleted successfully',
       })
