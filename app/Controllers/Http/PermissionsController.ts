@@ -70,11 +70,10 @@ export default class PermissionsController {
   }
 
   public async updatePermission({ request, response }: HttpContextContract) {
-    const { key } = await request.validate(GetPermissionValidator)
-    const data = await request.validate(UpdatePermissionValidator)
-
     try {
-      const permission = await this.permissionRepository.updatePermission(key, data)
+      const data = await request.validate(UpdatePermissionValidator)
+      const {key ,...newData}=data;
+      const permission = await this.permissionRepository.updatePermission(key, newData)
       return response.send({
         success: true,
         message: 'Permission updated successfully',

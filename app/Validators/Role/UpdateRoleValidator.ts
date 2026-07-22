@@ -1,7 +1,11 @@
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class UpdateRoleValidator {
+  constructor(protected ctx: HttpContextContract) {}
+
   public schema = schema.create({
+    key: schema.string([rules.required()]),
     name: schema.string.optional([rules.maxLength(100)]),
 
     description: schema.string.optional(),
@@ -11,5 +15,11 @@ export default class UpdateRoleValidator {
 
   public messages = {
     'name.maxLength': 'Role name must not exceed 100 characters',
+  }
+    public get data() {
+    return {
+      key: this.ctx.request.param('key'),
+      ...this.ctx.request.body(),
+    }
   }
 }
