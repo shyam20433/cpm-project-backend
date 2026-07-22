@@ -1,21 +1,25 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-import PermissionService from 'App/Services/PermissionService'
+import PermissionRepository from 'App/Repositories/PermissionRepository'
 
+import IsIncludeValidator from 'App/Validators/FetchAll/IsIncludeValidator'
 import CreatePermissionValidator from 'App/Validators/Permission/CreatePermissionValidator'
 import DeletePermissionValidator from 'App/Validators/Permission/DeletePermissionValidator'
 import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissionValidator'
 import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
 
 export default class PermissionsController {
-  private permissionService = new PermissionService()
+  private permissionRepository = new PermissionRepository()
+
   public async getPermissions({ request, response }: HttpContextContract) {
     try {
-      const permissions = await this.permissionService.getPermissions(request.qs())
+      const filters = await request.validate(IsIncludeValidator)
+
+      const permissions = await this.permissionRepository.getAll(filters)
 
       return response.status(200).send({
         success: true,
-        message: 'permissions fetched successfully',
+        message: 'Permissions fetched successfully',
         data: permissions,
       })
     } catch (error: any) {
@@ -26,19 +30,23 @@ export default class PermissionsController {
       })
     }
   }
+
   public async getPermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetPermissionValidator)
+
     try {
-      const permission = await this.permissionService.getPermission(key)
+      const permission = await this.permissionRepository.findByKey(key)
+
       if (!permission) {
         return response.notFound({
           success: false,
           message: 'Permission not found',
         })
       }
+
       return response.status(200).send({
         success: true,
-        message: 'permission fetched successfully',
+        message: 'Permission fetched successfully',
         data: permission,
       })
     } catch (error: any) {
@@ -52,9 +60,15 @@ export default class PermissionsController {
 
   public async postPermission({ request, response }: HttpContextContract) {
     const data = await request.validate(CreatePermissionValidator)
+
     try {
-      const permission = await this.permissionService.createPermission(data)
-      return response.created(permission)
+      const permission = await this.permissionRepository.createPermission(data)
+
+      return response.created({
+        success: true,
+        message: 'Permission created successfully',
+        data: permission,
+      })
     } catch (error: any) {
       return response.notAcceptable({
         success: false,
@@ -63,11 +77,13 @@ export default class PermissionsController {
       })
     }
   }
+
   public async updatePermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetPermissionValidator)
     const data = await request.validate(UpdatePermissionValidator)
+
     try {
-      const permission = await this.permissionService.updatePermission(key, data)
+      const permission = await this.permissionRepository.updatePermission(key, data)
 
       if (!permission) {
         return response.notFound({
@@ -75,9 +91,10 @@ export default class PermissionsController {
           message: 'Permission not found',
         })
       }
+
       return response.status(200).send({
         success: true,
-        message: 'permission updated successfully',
+        message: 'Permission updated successfully',
         data: permission,
       })
     } catch (error: any) {
@@ -88,19 +105,23 @@ export default class PermissionsController {
       })
     }
   }
+
   public async deletePermission({ request, response }: HttpContextContract) {
     const { key } = await request.validate(DeletePermissionValidator)
+
     try {
-      const permission = await this.permissionService.disablePermission(key)
+      const permission = await this.permissionRepository.disablePermission(key)
+
       if (!permission) {
         return response.notFound({
           success: false,
           message: 'Permission not found',
         })
       }
+
       return response.status(200).send({
         success: true,
-        message: 'permission disabled successfully',
+        message: 'Permission disabled successfully',
       })
     } catch (error: any) {
       return response.badRequest({

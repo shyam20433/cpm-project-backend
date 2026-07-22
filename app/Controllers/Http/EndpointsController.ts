@@ -1,39 +1,26 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import AssignedEndpoint from 'App/Models/AssignedEndpoint'
-import AssignedPermission from 'App/Models/AssignedPermission'
-import AssignedRole from 'App/Models/AssignedRole'
-import Endpoint from 'App/Models/Endpoint'
+
+import EndpointRepository from 'App/Repositories/EndpointRepository'
 
 import CreateEndpointValidator from 'App/Validators/Endpoint/CreateEndpointValidator'
 import DeleteEndpointValidator from 'App/Validators/Endpoint/DeleteEndpointValidator'
 import GetAccessDetailsValidator from 'App/Validators/Endpoint/GetAccessDetailsValidator'
 import GetEndpointValidator from 'App/Validators/Endpoint/GetEndpointValidator'
 import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValidator'
+import IsIncludeValidator from 'App/Validators/FetchAll/IsIncludeValidator'
 
 export default class EndpointsController {
+  private endpointRepository = new EndpointRepository()
+
   public async getEndpoints({ request, response }: HttpContextContract) {
     try {
-      const { status, sort } = request.qs()
+      const filters = await request.validate(IsIncludeValidator)
 
-      const query = Endpoint.query()
-      //.preload('permissions')
+      const endpoints = await this.endpointRepository.getAll(filters)
 
-      if (status !== undefined) {
-        query.where('status', status === 'true')
-      }
-      if (sort) {
-        if (sort.startsWith('-')) {
-          query.orderBy(sort.substring(1), 'desc')
-        } else {
-          query.orderBy(sort, 'asc')
-        }
-      }
-
-      const endpoints = await query
-
-      return response.status(200).send({
+      return response.ok({
         success: true,
-        message: 'endpoints fetched successfully',
+        message: 'Endpoints fetched successfully',
         data: endpoints,
       })
     } catch (error: any) {
@@ -45,10 +32,11 @@ export default class EndpointsController {
     }
   }
 
-  public async getEndpoint({ response, request }: HttpContextContract) {
+  public async getEndpoint({ request, response }: HttpContextContract) {
     const { id } = await request.validate(GetEndpointValidator)
+
     try {
-      const endpoint = await Endpoint.query().where('id', id).where('status', true).first()
+      const endpoint = await this.endpointRepository.findById(id)
 
       if (!endpoint) {
         return response.notFound({
@@ -57,9 +45,9 @@ export default class EndpointsController {
         })
       }
 
-      return response.status(200).send({
+      return response.ok({
         success: true,
-        message: 'endpoint fetched successfully',
+        message: 'Endpoint fetched successfully',
         data: endpoint,
       })
     } catch (error: any) {
@@ -73,9 +61,15 @@ export default class EndpointsController {
 
   public async postEndpoint({ request, response }: HttpContextContract) {
     const data = await request.validate(CreateEndpointValidator)
+
     try {
-      const endpoint = await Endpoint.create(data)
-      return response.created(endpoint)
+      const endpoint = await this.endpointRepository.createEndpoint(data)
+
+      return response.created({
+        success: true,
+        message: 'Endpoint created successfully',
+        data: endpoint,
+      })
     } catch (error: any) {
       return response.notAcceptable({
         success: false,
@@ -87,22 +81,21 @@ export default class EndpointsController {
 
   public async updateEndpoint({ request, response }: HttpContextContract) {
     const { id } = await request.validate(GetEndpointValidator)
-    const endpoint = await Endpoint.find(id)
+    const data = await request.validate(UpdateEndpointValidator)
 
-    if (!endpoint) {
-      return response.notFound({
-        success: false,
-        message: 'Endpoint not found',
-      })
-    }
     try {
-      endpoint.merge(await request.validate(UpdateEndpointValidator))
+      const endpoint = await this.endpointRepository.updateEndpoint(id, data)
 
-      await endpoint.save()
+      if (!endpoint) {
+        return response.notFound({
+          success: false,
+          message: 'Endpoint not found',
+        })
+      }
 
-      return response.status(200).send({
+      return response.ok({
         success: true,
-        message: 'endpoint updated successfully',
+        message: 'Endpoint updated successfully',
         data: endpoint,
       })
     } catch (error: any) {
@@ -116,23 +109,20 @@ export default class EndpointsController {
 
   public async deleteEndpoint({ request, response }: HttpContextContract) {
     const { id } = await request.validate(DeleteEndpointValidator)
-    const endpoint = await Endpoint.find(id)
-
-    if (!endpoint) {
-      return response.notFound({
-        success: false,
-        message: 'Endpoint not found',
-      })
-    }
 
     try {
-      endpoint.status = false
+      const endpoint = await this.endpointRepository.disableEndpoint(id)
 
-      await endpoint.save()
+      if (!endpoint) {
+        return response.notFound({
+          success: false,
+          message: 'Endpoint not found',
+        })
+      }
 
-      return response.status(200).send({
+      return response.ok({
         success: true,
-        message: 'endpoint disabled successfully',
+        message: 'Endpoint disabled successfully',
       })
     } catch (error: any) {
       return response.badRequest({
@@ -142,67 +132,24 @@ export default class EndpointsController {
       })
     }
   }
+
   public async getAccessDetails({ request, response }: HttpContextContract) {
     try {
       const data = await request.validate(GetAccessDetailsValidator)
 
-      const includeAll = data.include === 'all'
+      const accessDetails = await this.endpointRepository.getAccessDetails(data)
 
-      const endpoint = await Endpoint.query()
-        .where('serviceId', data.serviceId)
-        .where('method', data.method)
-        .where('route', data.route)
-        .first()
-
-      if (!endpoint) {
+      if (!accessDetails) {
         return response.notFound({
           success: false,
           message: 'Endpoint not found',
         })
       }
 
-      const assignedEndpoints = await AssignedEndpoint.query()
-        .where('endpointId', endpoint.id)
-        .preload('permission', (query) => query.select('key', 'name', 'description', 'status'))
-
-      const permissionKeys = assignedEndpoints.map((item) => item.permissionKey)
-
-      const assignedPermissions = await AssignedPermission.query()
-        .whereIn('permissionKey', permissionKeys)
-        .preload('role', (query) => query.select('key', 'name', 'description', 'status'))
-
-      const roleKeys = [...new Set(assignedPermissions.map((item) => item.roleKey))]
-
-      const assignedRoles = await AssignedRole.query()
-        .whereIn('roleKey', roleKeys)
-        .select('id', 'roleKey', 'email')
-
-      const filteredAssignedEndpoints = includeAll
-        ? assignedEndpoints
-        : assignedEndpoints.filter((item) => item.permission.status)
-
-      const filteredAssignedPermissions = includeAll
-        ? assignedPermissions
-        : assignedPermissions.filter((item) => item.role.status)
-
-      const activeRoleKeys = new Set(filteredAssignedPermissions.map((item) => item.roleKey))
-
-      const filteredAssignedRoles = includeAll
-        ? assignedRoles
-        : assignedRoles.filter((item) => activeRoleKeys.has(item.roleKey))
-
       return response.ok({
         success: true,
         message: 'Access details fetched successfully',
-        data: {
-          endpoint,
-
-          permissions: filteredAssignedEndpoints.map((item) => item.permission),
-
-          roles: [...new Set(filteredAssignedPermissions.map((item) => item.role.key))],
-
-          users: [...new Set(filteredAssignedRoles.map((item) => item.email))],
-        },
+        data: accessDetails,
       })
     } catch (error: any) {
       return response.badRequest({

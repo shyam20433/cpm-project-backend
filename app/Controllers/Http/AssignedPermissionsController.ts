@@ -10,34 +10,16 @@ import GetAssignedPermissionValidator from 'App/Validators/AssignedPermission/Ge
 import CreateAssignedPermissionValidator from 'App/Validators/AssignedPermission/CreateAssignedPermissionValidator'
 import DeleteAssignedPermissionValidator from 'App/Validators/AssignedPermission/DeleteAssignedPermissionValidator'
 import UpdateAssignedPermissionValidator from 'App/Validators/AssignedPermission/UpdateAssignedPermissionValidator'
+import AssignedPermissionsValidator from 'App/Validators/FetchAll/AssignedPermissionsValidator'
+
+import AssignedPermissionRepository from 'App/Repositories/AssignedPermissionRepository'
 
 export default class AssignedPermissionsController {
   public async getAssignedPermissions({ request, response }: HttpContextContract) {
     try {
-      const { sort } = request.qs()
+      const { sort = ' ' } = await request.validate(AssignedPermissionsValidator)
 
-      const query = AssignedPermission.query()
-        .whereHas('role', (query) => {
-          query.where('status', true).select('key', 'name', 'description', 'status')
-        })
-        .whereHas('permission', (query) => {
-          query.where('status', true).select('key', 'name', 'description', 'status')
-        })
-        .preload('role')
-        .preload('permission')
-
-      const allowedSorts = ['roleKey', 'permissionKey']
-
-      if (sort) {
-        const direction = sort.startsWith('-') ? 'desc' : 'asc'
-        const column = sort.startsWith('-') ? sort.substring(1) : sort
-
-        if (allowedSorts.includes(column)) {
-          query.orderBy(column, direction)
-        }
-      }
-
-      const assignedPermissions = await query
+      const assignedPermissions = await AssignedPermissionRepository.getAssignedPermissions(sort)
 
       return response.status(200).send({
         success: true,
@@ -62,12 +44,10 @@ export default class AssignedPermissionsController {
       await CheckRoleActive.validate(roleKey)
       await CheckPermissionActive.validate(permissionKey)
 
-      const assignedPermission = await AssignedPermission.query()
-        .where('roleKey', roleKey)
-        .where('permissionKey', permissionKey)
-        .preload('role')
-        .preload('permission')
-        .first()
+      const assignedPermission = await AssignedPermissionRepository.getAssignedPermission(
+        roleKey,
+        permissionKey
+      )
 
       if (!assignedPermission) {
         return response.notFound({
@@ -99,10 +79,7 @@ export default class AssignedPermissionsController {
       await CheckRoleActive.validate(data.roleKey)
       await CheckPermissionActive.validate(data.permissionKey)
 
-      const exists = await AssignedPermission.query()
-        .where('roleKey', data.roleKey)
-        .where('permissionKey', data.permissionKey)
-        .first()
+      const exists = await AssignedPermissionRepository.exists(data.roleKey, data.permissionKey)
 
       if (exists) {
         return response.badRequest({
@@ -111,7 +88,7 @@ export default class AssignedPermissionsController {
         })
       }
 
-      const assignedPermission = await AssignedPermission.create(data)
+      const assignedPermission = await AssignedPermissionRepository.create(data)
 
       return response.created(assignedPermission)
     } catch (error: any) {
@@ -132,10 +109,7 @@ export default class AssignedPermissionsController {
       await CheckRoleActive.validate(roleKey)
       await CheckPermissionActive.validate(permissionKey)
 
-      const assignedPermission = await AssignedPermission.query()
-        .where('roleKey', roleKey)
-        .where('permissionKey', permissionKey)
-        .first()
+      const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 
       if (!assignedPermission) {
         return response.notFound({
@@ -154,10 +128,10 @@ export default class AssignedPermissionsController {
       await CheckRoleActive.validate(updatedRoleKey)
       await CheckPermissionActive.validate(updatedPermissionKey)
 
-      const duplicate = await AssignedPermission.query()
-        .where('roleKey', updatedRoleKey)
-        .where('permissionKey', updatedPermissionKey)
-        .first()
+      const duplicate = await AssignedPermissionRepository.exists(
+        updatedRoleKey,
+        updatedPermissionKey
+      )
 
       if (
         duplicate &&
@@ -172,14 +146,15 @@ export default class AssignedPermissionsController {
         })
       }
 
-      assignedPermission.merge(data)
-
-      await assignedPermission.save()
+      const updatedAssignedPermission = await AssignedPermissionRepository.update(
+        assignedPermission,
+        data
+      )
 
       return response.status(200).send({
         success: true,
         message: 'assigned permission updated successfully',
-        data: assignedPermission,
+        data: updatedAssignedPermission,
       })
     } catch (error: any) {
       return response.badRequest({
@@ -199,10 +174,7 @@ export default class AssignedPermissionsController {
       await CheckRoleActive.validate(roleKey)
       await CheckPermissionActive.validate(permissionKey)
 
-      const assignedPermission = await AssignedPermission.query()
-        .where('roleKey', roleKey)
-        .where('permissionKey', permissionKey)
-        .first()
+      const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 
       if (!assignedPermission) {
         return response.notFound({
@@ -211,7 +183,7 @@ export default class AssignedPermissionsController {
         })
       }
 
-      await assignedPermission.delete()
+      await AssignedPermissionRepository.delete(assignedPermission)
 
       return response.status(200).send({
         success: true,

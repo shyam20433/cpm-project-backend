@@ -1,39 +1,25 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import AssignedEndpoint from 'App/Models/AssignedEndpoint'
 import GetAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/GetAssignedEndpointValidator'
 import CreateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/CreateAssignedEndpointValidator'
 import DeleteAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/DeleteAssignedEndpointValidator'
 import UpdateAssignedEndpointValidator from 'App/Validators/AssignedEndpoint/UpdateAssignedEndpointValidator'
+import AssignedEndpointsValidator from 'App/Validators/FetchAll/AssignedEndpointsValidator'
 
 import CheckEndpointExists from 'App/Validators/Exists/CheckEndpointExists'
 import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 import CheckEndpointActive from 'App/Validators/Active/CheckEndpointActive'
 import CheckPermissionActive from 'App/Validators/Active/CheckPermissionActive'
+
+import AssignedEndpointRepository from 'App/Repositories/AssignedEndpointRepository'
+
 export default class AssignedEndpointsController {
   public async getAssignedEndpoints({ request, response }: HttpContextContract) {
     try {
-      const { sort } = request.qs()
-      const query = AssignedEndpoint.query()
-        .whereHas('endpoint', (query) => {
-          query.where('status', true)
-        })
-        .whereHas('permission', (query) => {
-          query.where('status', true)
-        })
-        .preload('endpoint')
-        .preload('permission')
-      const allowedSorts = ['endpointId', 'permissionKey']
-      if (sort) {
-        const direction = sort.startsWith('-') ? 'desc' : 'asc'
-        const column = sort.startsWith('-') ? sort.substring(1) : sort
-        if (allowedSorts.includes(column)) {
-          query.orderBy(column, direction)
-        }
-      }
+      const { sort } = await request.validate(AssignedEndpointsValidator)
 
-      const assignedEndpoints = await query
+      const assignedEndpoints = await AssignedEndpointRepository.getAssignedEndpoints(sort)
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned endpoints fetched successfully',
         data: assignedEndpoints,
@@ -44,6 +30,7 @@ export default class AssignedEndpointsController {
       })
     }
   }
+
   public async getAssignedEndpoint({ request, response }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
 
@@ -53,12 +40,8 @@ export default class AssignedEndpointsController {
 
       await CheckEndpointActive.validate(endpointId)
       await CheckPermissionActive.validate(permissionKey)
-      const assignedEndpoint = await AssignedEndpoint.query()
-        .where('endpointId', endpointId)
-        .where('permissionKey', permissionKey)
-        .preload('endpoint')
-        .preload('permission')
-        .first()
+
+      const assignedEndpoint = await AssignedEndpointRepository.getAssignedEndpoint(endpointId, permissionKey)
 
       if (!assignedEndpoint) {
         return response.notFound({
@@ -66,7 +49,7 @@ export default class AssignedEndpointsController {
         })
       }
 
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned endpoint fetched successfully',
         data: assignedEndpoint,
@@ -86,7 +69,7 @@ export default class AssignedEndpointsController {
     await CheckPermissionActive.validate(data.permissionKey)
 
     try {
-      const assignedEndpoint = await AssignedEndpoint.create(data)
+      const assignedEndpoint = await AssignedEndpointRepository.create(data)
 
       return response.created(assignedEndpoint)
     } catch (error: any) {
@@ -104,10 +87,7 @@ export default class AssignedEndpointsController {
     await CheckEndpointActive.validate(endpointId)
     await CheckPermissionActive.validate(permissionKey)
 
-    const assignedEndpoint = await AssignedEndpoint.query()
-      .where('endpointId', endpointId)
-      .where('permissionKey', permissionKey)
-      .first()
+    const assignedEndpoint = await AssignedEndpointRepository.find(endpointId, permissionKey)
 
     if (!assignedEndpoint) {
       return response.notFound({
@@ -127,14 +107,12 @@ export default class AssignedEndpointsController {
       await CheckPermissionExists.validate(updatedPermissionKey)
       await CheckPermissionActive.validate(updatedPermissionKey)
 
-      assignedEndpoint.merge(data)
+      const updatedAssignedEndpoint = await AssignedEndpointRepository.update(assignedEndpoint, data)
 
-      await assignedEndpoint.save()
-
-      return response.status(200).send({
+      return response.send({
         success: true,
         message: 'assigned endpoint updated successfully',
-        data: assignedEndpoint,
+        data: updatedAssignedEndpoint,
       })
     } catch (error: any) {
       return response.badRequest({
@@ -149,18 +127,17 @@ export default class AssignedEndpointsController {
     await CheckPermissionExists.validate(permissionKey)
     await CheckEndpointActive.validate(endpointId)
     await CheckPermissionActive.validate(permissionKey)
-    const assignedEndpoint = await AssignedEndpoint.query()
-      .where('endpointId', endpointId)
-      .where('permissionKey', permissionKey)
-      .first()
+
+    const assignedEndpoint = await AssignedEndpointRepository.find(endpointId, permissionKey)
 
     if (!assignedEndpoint) {
       return response.notFound({
         message: 'Assigned endpoint not found',
       })
     }
+
     try {
-      await assignedEndpoint.delete()
+      await AssignedEndpointRepository.delete(assignedEndpoint)
 
       return response.status(200).send({
         success: true,

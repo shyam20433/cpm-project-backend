@@ -2,14 +2,12 @@ import Permission from 'App/Models/Permission'
 
 export default class PermissionRepository {
   public async getAll(filters: any) {
-    const { status, sort } = filters
+    const { include, sort } = filters
 
     const query = Permission.query()
-    //.preload('roles')
-    //preload('endpoints')
 
-    if (status !== undefined) {
-      query.where('status', status === 'true')
+    if (include !== 'all') {
+      query.where('status', true)
     }
 
     if (sort) {
@@ -27,12 +25,41 @@ export default class PermissionRepository {
     return await Permission.query().where('key', key).first()
   }
 
-  public async create(data: any) {
+  public async createPermission(data: any) {
+    const exists = await this.findByKey(data.key)
+
+    if (exists) {
+      throw new Error('Permission already exists')
+    }
+
     return await Permission.create(data)
   }
 
-  public async save(permission: Permission) {
+  public async updatePermission(key: string, data: any) {
+    const permission = await this.findByKey(key)
+
+    if (!permission) {
+      return null
+    }
+
+    permission.merge(data)
+
     await permission.save()
+
+    return permission
+  }
+
+  public async disablePermission(key: string) {
+    const permission = await this.findByKey(key)
+
+    if (!permission) {
+      return null
+    }
+
+    permission.status = false
+
+    await permission.save()
+
     return permission
   }
 }

@@ -1,31 +1,25 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Role from 'App/Models/Role'
+
+import RoleRepository from 'App/Repositories/RoleRepository'
+
+import IsIncludeValidator from 'App/Validators/FetchAll/IsIncludeValidator'
 import CreateRoleValidator from 'App/Validators/Role/CreateRoleValidator'
 import DeleteRoleValidator from 'App/Validators/Role/DeleteRoleValidator'
 import GetRoleValidator from 'App/Validators/Role/GetRoleValidator'
 import UpdateRoleValidator from 'App/Validators/Role/UpdateRoleValidator'
 
 export default class RolesController {
+  private roleRepository = new RoleRepository()
+
   public async getRoles({ request, response }: HttpContextContract) {
     try {
-      const { status, sort } = request.qs()
-      const query = Role.query()
-      //.preload('permissions')
-      if (status !== undefined) {
-        query.where('status', status === 'true')
-      }
-      if (sort) {
-        if (sort.startsWith('-')) {
-          query.orderBy(sort.substring(1), 'desc')
-        } else {
-          query.orderBy(sort, 'asc')
-        }
-      }
-      const roles = await query
+      const filters = await request.validate(IsIncludeValidator)
+
+      const roles = await this.roleRepository.getAll(filters)
 
       return response.status(200).send({
         success: true,
-        message: 'roles fetched successfully',
+        message: 'Roles fetched successfully',
         data: roles,
       })
     } catch (error: any) {
@@ -37,31 +31,11 @@ export default class RolesController {
     }
   }
 
-  public async getRolesDisable({ response }: HttpContextContract) {
-    try {
-      const roles = await Role.query().where('status', false)
-      //.preload('permissions')
-
-      return response.status(200).send({
-        success: true,
-        message: 'roles fetched successfully',
-        data: roles,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch disabled roles',
-        error: error.messages || error.message,
-      })
-    }
-  }
-
   public async getRole({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetRoleValidator)
 
     try {
-      const role = await Role.query().where('key', key).first()
-      //.preload('permissions')
+      const role = await this.roleRepository.findByKey(key)
 
       if (!role) {
         return response.notFound({
@@ -72,7 +46,7 @@ export default class RolesController {
 
       return response.status(200).send({
         success: true,
-        message: 'role fetched successfully',
+        message: 'Role fetched successfully',
         data: role,
       })
     } catch (error: any) {
@@ -88,9 +62,13 @@ export default class RolesController {
     const data = await request.validate(CreateRoleValidator)
 
     try {
-      const role = await Role.create(data)
+      const role = await this.roleRepository.createRole(data)
 
-      return response.created(role)
+      return response.created({
+        success: true,
+        message: 'Role created successfully',
+        data: role,
+      })
     } catch (error: any) {
       return response.notAcceptable({
         success: false,
@@ -102,22 +80,21 @@ export default class RolesController {
 
   public async updateRole({ request, response }: HttpContextContract) {
     const { key } = await request.validate(GetRoleValidator)
-    const role = await Role.find(key)
+    const data = await request.validate(UpdateRoleValidator)
 
-    if (!role) {
-      return response.notFound({
-        success: false,
-        message: 'Role not found',
-      })
-    }
     try {
-      role.merge(await request.validate(UpdateRoleValidator))
+      const role = await this.roleRepository.updateRole(key, data)
 
-      await role.save()
+      if (!role) {
+        return response.notFound({
+          success: false,
+          message: 'Role not found',
+        })
+      }
 
       return response.status(200).send({
         success: true,
-        message: 'role updated successfully',
+        message: 'Role updated successfully',
         data: role,
       })
     } catch (error: any) {
@@ -131,23 +108,20 @@ export default class RolesController {
 
   public async deleteRole({ request, response }: HttpContextContract) {
     const { key } = await request.validate(DeleteRoleValidator)
-    const role = await Role.find(key)
-
-    if (!role) {
-      return response.notFound({
-        success: false,
-        message: 'Role not found',
-      })
-    }
 
     try {
-      role.status = false
+      const role = await this.roleRepository.disableRole(key)
 
-      await role.save()
+      if (!role) {
+        return response.notFound({
+          success: false,
+          message: 'Role not found',
+        })
+      }
 
       return response.status(200).send({
         success: true,
-        message: 'role disabled successfully',
+        message: 'Role disabled successfully',
       })
     } catch (error: any) {
       return response.badRequest({
