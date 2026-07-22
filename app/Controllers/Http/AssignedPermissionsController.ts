@@ -1,6 +1,4 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import AssignedPermission from 'App/Models/AssignedPermission'
-
 import CheckRoleExists from 'App/Validators/Exists/CheckRoleExists'
 import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 import CheckRoleActive from 'App/Validators/Active/CheckRoleActive'
