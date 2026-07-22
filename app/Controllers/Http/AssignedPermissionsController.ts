@@ -16,16 +16,14 @@ export default class AssignedPermissionsController {
   public async getAssignedPermissions({ request, response }: HttpContextContract) {
     try {
       const qs = request.qs()
-      const allowedParams = ['sort']
-      const unknownParams = Object.keys(qs).filter((key) => !allowedParams.includes(key))
 
-      if (unknownParams.length > 0) {
+      try {
+        AssignedPermissionsValidator.validateQueryParams(qs)
+      } catch (error: any) {
         return response.badRequest({
           success: false,
           message: 'Invalid query parameters',
-          error: `Unknown fields: ${unknownParams.join(', ')}. Allowed: ${allowedParams.join(
-            ', '
-          )}`,
+          error: error.message,
         })
       }
       const { sort } = await request.validate(AssignedPermissionsValidator)

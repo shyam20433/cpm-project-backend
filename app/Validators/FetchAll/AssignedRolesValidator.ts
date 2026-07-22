@@ -12,4 +12,16 @@ export default class AssignedRolesValidator {
     'sort.regex': 'Sort must be one of: endpointId, permissionKey, -endpointId, -permissionKey',
   }
   public reportUnknownFields = true
+  public static validateQueryParams(qs: any) {
+    const allowedParams = ['sort']
+    const unknownParams = Object.keys(qs).filter((key) => !allowedParams.includes(key))
+
+    if (unknownParams.length > 0) {
+      throw new Error(
+        `Unknown fields: ${unknownParams.join(', ')}. Allowed: ${allowedParams.join(', ')}`
+      )
+    }
+
+    return true
+  }
 }
