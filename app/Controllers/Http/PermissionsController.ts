@@ -107,11 +107,16 @@ export default class PermissionsController {
   }
 
   public async deletePermission({ request, response }: HttpContextContract) {
-    const { key } = await request.validate(DeletePermissionValidator)
+    const { key, updatestatus } = await request.validate(DeletePermissionValidator)
 
     try {
-      const permission = await this.permissionRepository.disablePermission(key)
+      let permission
+      if (!updatestatus) {
+        permission = await this.permissionRepository.disablePermission(key)
+      } else {
+        permission = await this.permissionRepository.enablePermission(key)
 
+      }
       if (!permission) {
         return response.notFound({
           success: false,
@@ -121,7 +126,8 @@ export default class PermissionsController {
 
       return response.send({
         success: true,
-        message: 'Permission disabled successfully',
+        message: updatestatus ? 'Permissions enabled successfully' : 'Permissions disabled successfully',
+        data: permission,
       })
     } catch (error: any) {
       return response.badRequest({

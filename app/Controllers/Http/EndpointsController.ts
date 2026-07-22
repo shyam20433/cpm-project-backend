@@ -85,14 +85,6 @@ export default class EndpointsController {
 
     try {
       const endpoint = await this.endpointRepository.updateEndpoint(id, data)
-
-      if (!endpoint) {
-        return response.notFound({
-          success: false,
-          message: 'Endpoint not found',
-        })
-      }
-
       return response.ok({
         success: true,
         message: 'Endpoint updated successfully',
@@ -108,10 +100,17 @@ export default class EndpointsController {
   }
 
   public async deleteEndpoint({ request, response }: HttpContextContract) {
-    const { id } = await request.validate(DeleteEndpointValidator)
-
     try {
-      const endpoint = await this.endpointRepository.disableEndpoint(id)
+
+      const { id, updatestatus } = await request.validate(DeleteEndpointValidator)
+
+      let endpoint
+
+      if (!updatestatus) {
+        endpoint = await this.endpointRepository.disableEndpoint(id)
+      } else {
+        endpoint = await this.endpointRepository.enableEndpoint(id)
+      }
 
       if (!endpoint) {
         return response.notFound({
@@ -122,12 +121,13 @@ export default class EndpointsController {
 
       return response.ok({
         success: true,
-        message: 'Endpoint disabled successfully',
+        message: updatestatus ? 'Endpoint enabled successfully' : 'Endpoint disabled successfully',
+        data: endpoint,
       })
     } catch (error: any) {
       return response.badRequest({
         success: false,
-        message: 'Failed to disable endpoint',
+        message: 'Failed to update endpoint status',
         error: error.messages || error.message,
       })
     }

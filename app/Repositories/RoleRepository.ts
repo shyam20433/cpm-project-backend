@@ -64,4 +64,19 @@ export default class RoleRepository {
 
     return role
   }
+
+
+  public async enableRole(key: string) {
+    const role = await this.findByKey(key)
+
+    if (!role) {
+      return null
+    }
+
+    role.status = true
+
+    await role.save()
+
+    return role
+  }
 }

@@ -48,7 +48,7 @@ export default class EndpointRepository {
     const endpoint = await Endpoint.find(id)
 
     if (!endpoint) {
-      return null
+      throw new Error('NOT FOUND')
     }
 
     endpoint.merge(data)
@@ -66,6 +66,19 @@ export default class EndpointRepository {
     }
 
     endpoint.status = false
+
+    await endpoint.save()
+
+    return endpoint
+  }
+  public async enableEndpoint(id: number) {
+    const endpoint = await Endpoint.find(id)
+
+    if (!endpoint) {
+      return null
+    }
+
+    endpoint.status = true
 
     await endpoint.save()
 
