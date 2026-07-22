@@ -11,4 +11,5 @@ export default class AssignedPermissionsValidator {
   public messages = {
     'sort.regex': 'Sort must be one of: roleKey, permissionKey, -roleKey, -permissionKey',
   }
+  public reportUnknownFields = true
 }

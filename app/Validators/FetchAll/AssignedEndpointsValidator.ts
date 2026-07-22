@@ -11,4 +11,5 @@ export default class AssignedEndpointsValidator {
   public messages = {
     'sort.regex': 'Sort must be one of: endpointId, permissionKey, -endpointId, -permissionKey',
   }
+  public reportUnknownFields = true
 }

@@ -15,6 +15,19 @@ import AssignedEndpointRepository from 'App/Repositories/AssignedEndpointReposit
 export default class AssignedEndpointsController {
   public async getAssignedEndpoints({ request, response }: HttpContextContract) {
     try {
+      const qs = request.qs()
+      const allowedParams = ['sort']
+      const unknownParams = Object.keys(qs).filter((key) => !allowedParams.includes(key))
+
+      if (unknownParams.length > 0) {
+        return response.badRequest({
+          success: false,
+          message: 'Invalid query parameters',
+          error: `Unknown fields: ${unknownParams.join(', ')}. Allowed: ${allowedParams.join(
+            ', '
+          )}`,
+        })
+      }
       const { sort } = await request.validate(AssignedEndpointsValidator)
 
       const assignedEndpoints = await AssignedEndpointRepository.getAssignedEndpoints(sort)
@@ -41,7 +54,10 @@ export default class AssignedEndpointsController {
       await CheckEndpointActive.validate(endpointId)
       await CheckPermissionActive.validate(permissionKey)
 
-      const assignedEndpoint = await AssignedEndpointRepository.getAssignedEndpoint(endpointId, permissionKey)
+      const assignedEndpoint = await AssignedEndpointRepository.getAssignedEndpoint(
+        endpointId,
+        permissionKey
+      )
 
       if (!assignedEndpoint) {
         return response.notFound({
@@ -107,7 +123,10 @@ export default class AssignedEndpointsController {
       await CheckPermissionExists.validate(updatedPermissionKey)
       await CheckPermissionActive.validate(updatedPermissionKey)
 
-      const updatedAssignedEndpoint = await AssignedEndpointRepository.update(assignedEndpoint, data)
+      const updatedAssignedEndpoint = await AssignedEndpointRepository.update(
+        assignedEndpoint,
+        data
+      )
 
       return response.send({
         success: true,

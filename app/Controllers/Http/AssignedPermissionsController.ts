@@ -17,6 +17,19 @@ import AssignedPermissionRepository from 'App/Repositories/AssignedPermissionRep
 export default class AssignedPermissionsController {
   public async getAssignedPermissions({ request, response }: HttpContextContract) {
     try {
+      const qs = request.qs()
+      const allowedParams = ['sort']
+      const unknownParams = Object.keys(qs).filter((key) => !allowedParams.includes(key))
+
+      if (unknownParams.length > 0) {
+        return response.badRequest({
+          success: false,
+          message: 'Invalid query parameters',
+          error: `Unknown fields: ${unknownParams.join(', ')}. Allowed: ${allowedParams.join(
+            ', '
+          )}`,
+        })
+      }
       const { sort } = await request.validate(AssignedPermissionsValidator)
 
       const assignedPermissions = await AssignedPermissionRepository.getAssignedPermissions(sort)
