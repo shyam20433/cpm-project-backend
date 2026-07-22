@@ -37,14 +37,6 @@ export default class EndpointsController {
 
     try {
       const endpoint = await this.endpointRepository.findById(id)
-
-      if (!endpoint) {
-        return response.notFound({
-          success: false,
-          message: 'Endpoint not found',
-        })
-      }
-
       return response.ok({
         success: true,
         message: 'Endpoint fetched successfully',
@@ -101,7 +93,6 @@ export default class EndpointsController {
 
   public async deleteEndpoint({ request, response }: HttpContextContract) {
     try {
-
       const { id, updatestatus } = await request.validate(DeleteEndpointValidator)
 
       let endpoint
@@ -111,14 +102,6 @@ export default class EndpointsController {
       } else {
         endpoint = await this.endpointRepository.enableEndpoint(id)
       }
-
-      if (!endpoint) {
-        return response.notFound({
-          success: false,
-          message: 'Endpoint not found',
-        })
-      }
-
       return response.ok({
         success: true,
         message: updatestatus ? 'Endpoint enabled successfully' : 'Endpoint disabled successfully',
@@ -138,14 +121,6 @@ export default class EndpointsController {
       const data = await request.validate(GetAccessDetailsValidator)
 
       const accessDetails = await this.endpointRepository.getAccessDetails(data)
-
-      if (!accessDetails) {
-        return response.notFound({
-          success: false,
-          message: 'Endpoint not found',
-        })
-      }
-
       return response.ok({
         success: true,
         message: 'Access details fetched successfully',

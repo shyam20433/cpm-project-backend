@@ -7,6 +7,9 @@ export default class CheckRoleExists {
     if (!role) {
       throw new Error('Role does not exist')
     }
+    if (!role?.status) {
+      throw new Error('Role is inactive')
+    }
 
     return role
   }

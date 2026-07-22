@@ -37,13 +37,6 @@ export default class RolesController {
     try {
       const role = await this.roleRepository.findByKey(key)
 
-      if (!role) {
-        return response.notFound({
-          success: false,
-          message: 'Role not found',
-        })
-      }
-
       return response.send({
         success: true,
         message: 'Role fetched successfully',
@@ -85,13 +78,6 @@ export default class RolesController {
     try {
       const role = await this.roleRepository.updateRole(key, data)
 
-      if (!role) {
-        return response.notFound({
-          success: false,
-          message: 'Role not found',
-        })
-      }
-
       return response.send({
         success: true,
         message: 'Role updated successfully',
@@ -107,31 +93,20 @@ export default class RolesController {
   }
 
   public async deleteRole({ request, response }: HttpContextContract) {
-
-
     try {
       let roles
       const { key, updatestatus } = await request.validate(DeleteRoleValidator)
 
       if (!updatestatus) {
         roles = await this.roleRepository.disableRole(key)
-      }
-      else {
+      } else {
         roles = await this.roleRepository.enableRole(key)
-      }
-
-
-      if (!roles) {
-        return response.notFound({
-          success: false,
-          message: 'Role not found',
-        })
       }
 
       return response.send({
         success: true,
         message: updatestatus ? 'Role enabled successfully' : 'Role disabled successfully',
-        data: roles
+        data: roles,
       })
     } catch (error: any) {
       return response.badRequest({

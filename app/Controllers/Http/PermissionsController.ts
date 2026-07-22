@@ -10,7 +10,6 @@ import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValid
 
 export default class PermissionsController {
   private permissionRepository = new PermissionRepository()
-
   public async getPermissions({ request, response }: HttpContextContract) {
     try {
       const filters = await request.validate(IsIncludeValidator)
@@ -36,14 +35,6 @@ export default class PermissionsController {
 
     try {
       const permission = await this.permissionRepository.findByKey(key)
-
-      if (!permission) {
-        return response.notFound({
-          success: false,
-          message: 'Permission not found',
-        })
-      }
-
       return response.send({
         success: true,
         message: 'Permission fetched successfully',
@@ -84,14 +75,6 @@ export default class PermissionsController {
 
     try {
       const permission = await this.permissionRepository.updatePermission(key, data)
-
-      if (!permission) {
-        return response.notFound({
-          success: false,
-          message: 'Permission not found',
-        })
-      }
-
       return response.send({
         success: true,
         message: 'Permission updated successfully',
@@ -115,18 +98,13 @@ export default class PermissionsController {
         permission = await this.permissionRepository.disablePermission(key)
       } else {
         permission = await this.permissionRepository.enablePermission(key)
-
-      }
-      if (!permission) {
-        return response.notFound({
-          success: false,
-          message: 'Permission not found',
-        })
       }
 
       return response.send({
         success: true,
-        message: updatestatus ? 'Permissions enabled successfully' : 'Permissions disabled successfully',
+        message: updatestatus
+          ? 'Permissions enabled successfully'
+          : 'Permissions disabled successfully',
         data: permission,
       })
     } catch (error: any) {

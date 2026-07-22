@@ -10,7 +10,6 @@ export default class UpdateEndpointValidator {
 
     status: schema.boolean.optional(),
   })
-
   public messages = {
     'method.enum': 'Invalid HTTP method',
   }

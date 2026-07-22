@@ -1,8 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import CheckRoleExists from 'App/Validators/Exists/CheckRoleExists'
 import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
-import CheckRoleActive from 'App/Validators/Active/CheckRoleActive'
-import CheckPermissionActive from 'App/Validators/Active/CheckPermissionActive'
 
 import GetAssignedPermissionValidator from 'App/Validators/AssignedPermission/GetAssignedPermissionValidator'
 import CreateAssignedPermissionValidator from 'App/Validators/AssignedPermission/CreateAssignedPermissionValidator'
@@ -50,8 +48,6 @@ export default class AssignedPermissionsController {
 
       await CheckRoleExists.validate(roleKey)
       await CheckPermissionExists.validate(permissionKey)
-      await CheckRoleActive.validate(roleKey)
-      await CheckPermissionActive.validate(permissionKey)
 
       const assignedPermission = await AssignedPermissionRepository.getAssignedPermission(
         roleKey,
@@ -85,8 +81,6 @@ export default class AssignedPermissionsController {
 
       await CheckRoleExists.validate(data.roleKey)
       await CheckPermissionExists.validate(data.permissionKey)
-      await CheckRoleActive.validate(data.roleKey)
-      await CheckPermissionActive.validate(data.permissionKey)
 
       const exists = await AssignedPermissionRepository.exists(data.roleKey, data.permissionKey)
 
@@ -119,8 +113,6 @@ export default class AssignedPermissionsController {
 
       await CheckRoleExists.validate(roleKey)
       await CheckPermissionExists.validate(permissionKey)
-      await CheckRoleActive.validate(roleKey)
-      await CheckPermissionActive.validate(permissionKey)
 
       const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 
@@ -138,8 +130,6 @@ export default class AssignedPermissionsController {
 
       await CheckRoleExists.validate(updatedRoleKey)
       await CheckPermissionExists.validate(updatedPermissionKey)
-      await CheckRoleActive.validate(updatedRoleKey)
-      await CheckPermissionActive.validate(updatedPermissionKey)
 
       const duplicate = await AssignedPermissionRepository.exists(
         updatedRoleKey,
@@ -184,8 +174,6 @@ export default class AssignedPermissionsController {
 
       await CheckRoleExists.validate(roleKey)
       await CheckPermissionExists.validate(permissionKey)
-      await CheckRoleActive.validate(roleKey)
-      await CheckPermissionActive.validate(permissionKey)
 
       const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 

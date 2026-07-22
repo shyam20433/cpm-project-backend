@@ -7,6 +7,9 @@ export default class CheckPermissionExists {
     if (!permission) {
       throw new Error('permission does not exist')
     }
+    if (!permission.status) {
+      throw new Error('permission is Inactive')
+    }
 
     return permission
   }

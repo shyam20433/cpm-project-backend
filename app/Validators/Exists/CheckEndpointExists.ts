@@ -7,6 +7,9 @@ export default class CheckEndpointExists {
     if (!endpoint) {
       throw new Error('Endpoint does not exist')
     }
+    if (!endpoint.status) {
+      throw new Error('Endpoint is Inactive')
+    }
 
     return endpoint
   }
