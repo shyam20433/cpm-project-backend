@@ -1,24 +1,25 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder'
 import AssignedRole from 'App/Models/AssignedRole'
+
 export default class AssignedRoleSeeder extends BaseSeeder {
   public async run() {
-    await AssignedRole.updateOrCreateMany('id', [
+    await AssignedRole.updateOrCreateMany(['roleKey', 'email'], [
       {
-        id: 1,
         roleKey: 'ADMIN',
-        email: 'admin@company.com',
+        email: 'admin@gmail.com',
       },
       {
-        id: 2,
+        roleKey: 'USER',
+        email: 'user@gmail.com',
+      },
+      {
+        roleKey: 'UPLOADER',
+        email: 'uploader@gmail.com',
+      },
+      {
         roleKey: 'MANAGER',
-        email: 'manager@company.com',
-      },
-      {
-        id: 3,
-        roleKey: 'EMPLOYEE',
-        email: 'employee@company.com',
+        email: 'manager@gmail.com',
       },
     ])
-    // Write your database queries inside the run method
   }
 }
