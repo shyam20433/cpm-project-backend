@@ -17,6 +17,7 @@ export default class PermissionRepository {
         query.orderBy(sort, "asc");
       }
     }
+    query.limit(20)
 
     return await query;
   }

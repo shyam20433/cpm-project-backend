@@ -18,7 +18,7 @@ export default class AssignedRoleRepository {
         query.orderBy(column, direction);
       }
     }
-
+    query.limit(20);
     return await query;
   }
 

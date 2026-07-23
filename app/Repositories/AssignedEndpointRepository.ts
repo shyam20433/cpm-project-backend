@@ -22,7 +22,7 @@ export default class AssignedEndpointRepository {
         query.orderBy(column, direction)
       }
     }
-
+    query.limit(20)
     return await query
   }
 

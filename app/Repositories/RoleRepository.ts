@@ -18,7 +18,7 @@ export default class RoleRepository {
         query.orderBy(sort, "asc");
       }
     }
-
+    query.limit(20)
     return await query;
   }
 

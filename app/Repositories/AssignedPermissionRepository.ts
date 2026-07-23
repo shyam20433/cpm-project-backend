@@ -22,6 +22,7 @@ export default class AssignedPermissionRepository {
         query.orderBy(column, direction)
       }
     }
+    query.limit(20)
 
     return await query
   }
