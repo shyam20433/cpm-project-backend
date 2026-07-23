@@ -1,13 +1,13 @@
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-
+import { HttpMethod } from 'App/Enums/HttpMethod'
 export default class UpdateEndpointValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
     id: schema.number([rules.required()]),
 
-    method: schema.enum.optional(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const),
+    method: schema.enum.optional(Object.values(HttpMethod)),
     route: schema.string.optional({}, [rules.maxLength(255)]),
     serviceId: schema.number.optional(),
     status: schema.boolean.optional(),

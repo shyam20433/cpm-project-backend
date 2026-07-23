@@ -1,12 +1,12 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
-
+import { HttpMethod } from 'App/Enums/HttpMethod'
 export default class Endpoints extends BaseSchema {
   protected tableName = 'endpoints'
 
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.enum('method', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).notNullable()
+      table.enum('method',Object.values(HttpMethod)).notNullable()
       table.string('route').notNullable()
       table.unique(['method', 'route'])
       table.integer('serviceId').notNullable().unsigned()

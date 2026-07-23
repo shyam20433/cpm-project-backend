@@ -1,4 +1,6 @@
 import Route from '@ioc:Adonis/Core/Route'
+import jwt from 'jsonwebtoken'
+import Env from '@ioc:Adonis/Core/Env'
 //endpoints
 Route.get('/endpoints', 'EndpointsController.getEndpoints')
 Route.get('/endpoints/access-details', 'EndpointsController.getAccessDetails')
@@ -15,12 +17,13 @@ Route.put('/roles/:key', 'RolesController.updateRole')
 Route.delete('/roles/:key', 'RolesController.deleteRole')
 
 //permissions
+Route.group(()=>{
 Route.get('/permissions', 'PermissionsController.getPermissions')
 Route.get('/permissions/:key', 'PermissionsController.getPermission')
 Route.post('/permissions', 'PermissionsController.postPermission')
 Route.put('/permissions/:key', 'PermissionsController.updatePermission')
 Route.delete('/permissions/:key', 'PermissionsController.deletePermission')
-
+}).middleware('jwtAuth')
 //assigned roles
 Route.get('/assigned-roles', 'AssignedRolesController.getAssignedRoles')
 Route.get('/assigned-roles/:id', 'AssignedRolesController.getAssignedRole')
@@ -59,3 +62,21 @@ Route.delete(
   '/assigned-endpoints/:endpointId/:permissionKey',
   'AssignedEndpointsController.deleteAssignedEndpoint'
 )
+
+
+Route.get('/generate-token', async () => {
+  const token = jwt.sign(
+    {
+      id: 1,
+      role: 'ADMIN',
+    },
+    Env.get('APP_KEY'),
+    {
+      expiresIn: '1d',
+    }
+  )
+  return {
+    success: true,
+    token,
+  }
+})

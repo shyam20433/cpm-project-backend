@@ -1,8 +1,8 @@
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
-
+import { HttpMethod } from 'App/Enums/HttpMethod'
 export default class CreateEndpointValidator {
   public schema = schema.create({
-    method: schema.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const),
+    method: schema.enum(Object.values(HttpMethod)),
 
     route: schema.string({}, [rules.maxLength(255)]),
 
