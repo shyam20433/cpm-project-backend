@@ -6,7 +6,7 @@ export default class Endpoints extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.enum('method',Object.values(HttpMethod)).notNullable()
+      table.enum('method', Object.values(HttpMethod)).notNullable()
       table.string('route').notNullable()
       table.unique(['method', 'route'])
       table.integer('serviceId').notNullable().unsigned()

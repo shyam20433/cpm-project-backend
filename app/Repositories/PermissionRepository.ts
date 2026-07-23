@@ -1,82 +1,82 @@
-import Permission from "App/Models/Permission";
+import Permission from 'App/Models/Permission'
 
 export default class PermissionRepository {
   public async getAll(filters: any) {
-    const { include, sort } = filters;
+    const { include, sort } = filters
 
-    const query = Permission.query();
+    const query = Permission.query()
 
-    if (include !== "all") {
-      query.where("status", true);
+    if (include !== 'all') {
+      query.where('status', true)
     }
 
     if (sort) {
-      if (sort.startsWith("-")) {
-        query.orderBy(sort.substring(1), "desc");
+      if (sort.startsWith('-')) {
+        query.orderBy(sort.substring(1), 'desc')
       } else {
-        query.orderBy(sort, "asc");
+        query.orderBy(sort, 'asc')
       }
     }
     query.limit(20)
 
-    return await query;
+    return await query
   }
 
   public async findByKey(key: string) {
-    const permission = await Permission.query().where("key", key).first();
+    const permission = await Permission.query().where('key', key).first()
     if (!permission) {
-      throw new Error("PERMISSION NOT FOUND");
+      throw new Error('PERMISSION NOT FOUND')
     }
-    return permission;
+    return permission
   }
 
   public async createPermission(data: any) {
-    const exists = await Permission.query().where("key", data.key).first();
+    const exists = await Permission.query().where('key', data.key).first()
 
     if (exists) {
-      throw new Error("Permission already exists");
+      throw new Error('Permission already exists')
     }
 
-    return await Permission.create(data);
+    return await Permission.create(data)
   }
 
   public async updatePermission(key: string, data: any) {
-    const permission = await this.findByKey(key);
+    const permission = await this.findByKey(key)
 
     if (!permission) {
-      throw new Error("PERMISSION NOT FOUND");
+      throw new Error('PERMISSION NOT FOUND')
     }
 
-    permission.merge(data);
+    permission.merge(data)
 
-    await permission.save();
+    await permission.save()
 
-    return permission;
+    return permission
   }
 
   public async disablePermission(key: string) {
-    const permission = await this.findByKey(key);
+    const permission = await this.findByKey(key)
 
     if (!permission) {
-      throw new Error("PERMISSION NOT FOUND");
+      throw new Error('PERMISSION NOT FOUND')
     }
-    permission.status = false;
+    permission.status = false
 
-    await permission.save();
+    await permission.save()
 
-    return permission;
+    return permission
   }
   public async enablePermission(key: string) {
-    const permission = await this.findByKey(key);
+    const permission = await this.findByKey(key)
 
     if (!permission) {
-      throw new Error("PERMISSION NOT FOUND");
+      throw new Error('PERMISSION NOT FOUND')
     }
 
-    permission.status = true;
+    permission.status = true
 
-    await permission.save();
+    await permission.save()
 
-    return permission;
+    return permission
   }
 }

@@ -16,7 +16,7 @@ export default class UpdatePermissionValidator {
   public messages = {
     'name.maxLength': 'Permission name must not exceed 100 characters',
   }
-    public get data() {
+  public get data() {
     return {
       key: this.ctx.request.param('key'),
       ...this.ctx.request.body(),

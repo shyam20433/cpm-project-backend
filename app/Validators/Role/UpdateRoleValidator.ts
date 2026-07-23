@@ -16,7 +16,7 @@ export default class UpdateRoleValidator {
   public messages = {
     'name.maxLength': 'Role name must not exceed 100 characters',
   }
-    public get data() {
+  public get data() {
     return {
       key: this.ctx.request.param('key'),
       ...this.ctx.request.body(),
