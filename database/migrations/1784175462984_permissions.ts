@@ -9,8 +9,8 @@ export default class Permissions extends BaseSchema {
       table.string('name').notNullable().unique()
       table.text('description')
       table.boolean('status').defaultTo(true)
-      table.timestamp('createdAt', { useTz: true })
-      table.timestamp('updatedAt', { useTz: true })
+      table.timestamp("createdAt", { useTz: true }).defaultTo(this.now());
+      table.timestamp("updatedAt", { useTz: true }).defaultTo(this.now());
     })
   }
 

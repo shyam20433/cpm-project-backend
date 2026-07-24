@@ -8,8 +8,8 @@ export default class AssignedEndpoints extends BaseSchema {
       table.integer('endpointId').unsigned().references('id').inTable('endpoints').notNullable()
       table.string('permissionKey').references('key').inTable('permissions').notNullable()
       table.primary(['endpointId', 'permissionKey'])
-      table.timestamp('createdAt', { useTz: true })
-      table.timestamp('updatedAt', { useTz: true })
+      table.timestamp("createdAt", { useTz: true }).defaultTo(this.now());
+      table.timestamp("updatedAt", { useTz: true }).defaultTo(this.now());
     })
   }
 

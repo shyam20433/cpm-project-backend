@@ -10,8 +10,8 @@ export default class AssignedPermissions extends BaseSchema {
       table.string('permissionKey').references('key').inTable('permissions').notNullable()
 
       table.primary(['roleKey', 'permissionKey'])
-      table.timestamp('createdAt', { useTz: true })
-      table.timestamp('updatedAt', { useTz: true })
+      table.timestamp("createdAt", { useTz: true }).defaultTo(this.now());
+      table.timestamp("updatedAt", { useTz: true }).defaultTo(this.now());
     })
   }
 
