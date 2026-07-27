@@ -62,5 +62,7 @@ Route.delete(
   'AssignedEndpointsController.deleteAssignedEndpoint'
 )
 
-Route.post('/login', 'AuthController.login')
 }).middleware('jwtAuth')
+
+Route.post('/login', 'AuthController.login')
+
