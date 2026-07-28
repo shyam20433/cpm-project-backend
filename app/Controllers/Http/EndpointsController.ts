@@ -8,15 +8,15 @@ import GetAccessDetailsValidator from 'App/Validators/Endpoint/GetAccessDetailsV
 import GetEndpointValidator from 'App/Validators/Endpoint/GetEndpointValidator'
 import UpdateEndpointValidator from 'App/Validators/Endpoint/UpdateEndpointValidator'
 import IsIncludeValidator from 'App/Validators/FetchAll/IsIncludeValidator'
-
+const endpointRepository = new EndpointRepository()
 export default class EndpointsController {
-  private endpointRepository = new EndpointRepository()
+
 
   public async getEndpoints({ request, response }: HttpContextContract) {
     try {
       const filters = await request.validate(IsIncludeValidator)
 
-      const endpoints = await this.endpointRepository.getAll(filters)
+      const endpoints = await endpointRepository.getAll(filters)
 
       return response.ok({
         success: true,
@@ -36,7 +36,7 @@ export default class EndpointsController {
     const { id } = await request.validate(GetEndpointValidator)
 console.log(id)
     try {
-      const endpoint = await this.endpointRepository.findById(id)
+      const endpoint = await endpointRepository.findById(id)
       console.log(endpoint)
       return response.ok({
         success: true,
@@ -56,7 +56,7 @@ console.log(id)
     const data = await request.validate(CreateEndpointValidator)
 
     try {
-      const endpoint = await this.endpointRepository.createEndpoint(data)
+      const endpoint = await endpointRepository.createEndpoint(data)
 
       return response.created({
         success: true,
@@ -76,7 +76,7 @@ console.log(id)
     try {
       const data = await request.validate(UpdateEndpointValidator)
       const { id, ...newData } = data
-      const endpoint = await this.endpointRepository.updateEndpoint(id, newData)
+      const endpoint = await endpointRepository.updateEndpoint(id, newData)
       return response.ok({
         success: true,
         message: 'Endpoint updated successfully',
@@ -98,9 +98,9 @@ console.log(id)
       let endpoint
 
       if (!updatestatus) {
-        endpoint = await this.endpointRepository.disableEndpoint(id)
+        endpoint = await endpointRepository.disableEndpoint(id)
       } else {
-        endpoint = await this.endpointRepository.enableEndpoint(id)
+        endpoint = await endpointRepository.enableEndpoint(id)
       }
       return response.ok({
         success: true,
@@ -120,7 +120,7 @@ console.log(id)
     try {
       const data = await request.validate(GetAccessDetailsValidator)
 
-      const accessDetails = await this.endpointRepository.getAccessDetails(data)
+      const accessDetails = await endpointRepository.getAccessDetails(data)
       return response.ok({
         success: true,
         message: 'Access details fetched successfully',

@@ -8,13 +8,14 @@ import DeletePermissionValidator from 'App/Validators/Permission/DeletePermissio
 import UpdatePermissionValidator from 'App/Validators/Permission/UpdatePermissionValidator'
 import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValidator'
 
+const permissionRepository = new PermissionRepository()
+
 export default class PermissionsController {
-  private permissionRepository = new PermissionRepository()
   public async getPermissions({ request, response }: HttpContextContract) {
     try {
       const filters = await request.validate(IsIncludeValidator)
 
-      const permissions = await this.permissionRepository.getAll(filters)
+      const permissions = await permissionRepository.getAll(filters)
 
       return response.send({
         success: true,
@@ -34,7 +35,7 @@ export default class PermissionsController {
     const { key } = await request.validate(GetPermissionValidator)
 
     try {
-      const permission = await this.permissionRepository.findByKey(key)
+      const permission = await permissionRepository.findByKey(key)
       return response.send({
         success: true,
         message: 'Permission fetched successfully',
@@ -53,7 +54,7 @@ export default class PermissionsController {
     const data = await request.validate(CreatePermissionValidator)
 
     try {
-      const permission = await this.permissionRepository.createPermission(data)
+      const permission = await permissionRepository.createPermission(data)
 
       return response.created({
         success: true,
@@ -73,7 +74,7 @@ export default class PermissionsController {
     try {
       const data = await request.validate(UpdatePermissionValidator)
       const { key, ...newData } = data
-      const permission = await this.permissionRepository.updatePermission(key, newData)
+      const permission = await permissionRepository.updatePermission(key, newData)
       return response.send({
         success: true,
         message: 'Permission updated successfully',
@@ -94,9 +95,9 @@ export default class PermissionsController {
     try {
       let permission
       if (!updatestatus) {
-        permission = await this.permissionRepository.disablePermission(key)
+        permission = await permissionRepository.disablePermission(key)
       } else {
-        permission = await this.permissionRepository.enablePermission(key)
+        permission = await permissionRepository.enablePermission(key)
       }
 
       return response.send({

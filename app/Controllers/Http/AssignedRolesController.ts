@@ -9,9 +9,9 @@ import DeleteAssignedRoleValidator from 'App/Validators/AssignedRole/DeleteAssig
 
 import CheckRoleExists from 'App/Validators/Exists/CheckRoleExists'
 import AssignedRolesValidator from 'App/Validators/FetchAll/AssignedRolesValidator'
-
+const assignedRoleRepository = new AssignedRoleRepository()
 export default class AssignedRolesController {
-  private assignedRoleRepository = new AssignedRoleRepository()
+
 
   public async getAssignedRoles({ request, response }: HttpContextContract) {
     try {
@@ -28,7 +28,7 @@ export default class AssignedRolesController {
       }
       const { sort } = await request.validate(AssignedRolesValidator)
 
-      const assignedRoles = await this.assignedRoleRepository.getAll(sort)
+      const assignedRoles = await assignedRoleRepository.getAll(sort)
 
       return response.send({
         success: true,
@@ -47,10 +47,10 @@ export default class AssignedRolesController {
   public async getAssignedRole({ request, response }: HttpContextContract) {
     try {
       const { id } = await request.validate(GetAssignedRoleValidator)
-      const assignedRole = await this.assignedRoleRepository.findById(id)
+      const assignedRole = await assignedRoleRepository.findById(id)
       await CheckRoleExists.validate(assignedRole.roleKey)
 
-      await this.assignedRoleRepository.loadRole(assignedRole)
+      await assignedRoleRepository.loadRole(assignedRole)
 
       return response.send({
         success: true,
@@ -71,7 +71,7 @@ export default class AssignedRolesController {
       const data = await request.validate(CreateAssignedRoleValidator)
       await CheckRoleExists.validate(data.roleKey)
 
-      const exists = await this.assignedRoleRepository.exists(data.roleKey, data.email)
+      const exists = await assignedRoleRepository.exists(data.roleKey, data.email)
       if (exists) {
         return response.badRequest({
           success: false,
@@ -79,7 +79,7 @@ export default class AssignedRolesController {
         })
       }
 
-      const assignedRole = await this.assignedRoleRepository.createAssignedRole(data)
+      const assignedRole = await assignedRoleRepository.createAssignedRole(data)
 
       return response.created({
         success: true,
@@ -98,7 +98,7 @@ export default class AssignedRolesController {
   public async updateAssignedRole({ request, response }: HttpContextContract) {
     try {
       const { id } = await request.validate(GetAssignedRoleValidator)
-      const assignedRole = await this.assignedRoleRepository.findById(id)
+      const assignedRole = await assignedRoleRepository.findById(id)
 
       const data = await request.validate(UpdateAssignedRoleValidator)
 
@@ -107,7 +107,7 @@ export default class AssignedRolesController {
 
       await CheckRoleExists.validate(roleKey)
 
-      const duplicate = await this.assignedRoleRepository.exists(roleKey, email)
+      const duplicate = await assignedRoleRepository.exists(roleKey, email)
       if (duplicate && duplicate.id !== assignedRole.id) {
         return response.badRequest({
           success: false,
@@ -115,7 +115,7 @@ export default class AssignedRolesController {
         })
       }
 
-      const updatedAssignedRole = await this.assignedRoleRepository.updateAssignedRole(id, data)
+      const updatedAssignedRole = await assignedRoleRepository.updateAssignedRole(id, data)
 
       return response.send({
         success: true,
@@ -134,10 +134,10 @@ export default class AssignedRolesController {
   public async deleteAssignedRole({ request, response }: HttpContextContract) {
     try {
       const { id } = await request.validate(DeleteAssignedRoleValidator)
-      const assignedRole = await this.assignedRoleRepository.findById(id)
+      const assignedRole = await assignedRoleRepository.findById(id)
 
       await CheckRoleExists.validate(assignedRole.roleKey)
-      await this.assignedRoleRepository.deleteAssignedRole(id)
+      await assignedRoleRepository.deleteAssignedRole(id)
 
       return response.send({
         success: true,

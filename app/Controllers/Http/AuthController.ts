@@ -2,14 +2,14 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import LoginValidator from 'App/Validators/LoginValidator'
 import AuthRepository from 'App/Repositories/AuthRepository'
-
+const authRepository = new AuthRepository()
 export default class AuthController {
-  private authRepository = new AuthRepository()
+
   public async login({ request, response }: HttpContextContract) {
     try {
       const data = await request.validate(LoginValidator)
 
-      const result = await this.authRepository.login(data.email)
+      const result = await authRepository.login(data.email)
 
       return response.ok({
         success: true,

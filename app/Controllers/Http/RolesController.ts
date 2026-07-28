@@ -7,15 +7,15 @@ import CreateRoleValidator from 'App/Validators/Role/CreateRoleValidator'
 import DeleteRoleValidator from 'App/Validators/Role/DeleteRoleValidator'
 import GetRoleValidator from 'App/Validators/Role/GetRoleValidator'
 import UpdateRoleValidator from 'App/Validators/Role/UpdateRoleValidator'
-
+const roleRepository = new RoleRepository()
 export default class RolesController {
-  private roleRepository = new RoleRepository()
+
 
   public async getRoles({ request, response }: HttpContextContract) {
     try {
       const filters = await request.validate(IsIncludeValidator)
 
-      const roles = await this.roleRepository.getAll(filters)
+      const roles = await roleRepository.getAll(filters)
 
       return response.send({
         success: true,
@@ -35,7 +35,7 @@ export default class RolesController {
     const { key } = await request.validate(GetRoleValidator)
 
     try {
-      const role = await this.roleRepository.findByKey(key)
+      const role = await roleRepository.findByKey(key)
 
       return response.send({
         success: true,
@@ -55,7 +55,7 @@ export default class RolesController {
     const data = await request.validate(CreateRoleValidator)
 
     try {
-      const role = await this.roleRepository.createRole(data)
+      const role = await roleRepository.createRole(data)
 
       return response.created({
         success: true,
@@ -75,7 +75,7 @@ export default class RolesController {
     try {
       const data = await request.validate(UpdateRoleValidator)
       const { key, ...newData } = data
-      const role = await this.roleRepository.updateRole(key, newData)
+      const role = await roleRepository.updateRole(key, newData)
 
       return response.send({
         success: true,
@@ -97,9 +97,9 @@ export default class RolesController {
       const { key, updatestatus } = await request.validate(DeleteRoleValidator)
 
       if (!updatestatus) {
-        roles = await this.roleRepository.disableRole(key)
+        roles = await roleRepository.disableRole(key)
       } else {
-        roles = await this.roleRepository.enableRole(key)
+        roles = await roleRepository.enableRole(key)
       }
 
       return response.send({
