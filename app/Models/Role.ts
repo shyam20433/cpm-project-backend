@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, manyToMany, ManyToMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, manyToMany, ManyToMany, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
 
 import Permission from './Permission'
+import AssignedRole from './AssignedRole'
 
 export default class Role extends BaseModel {
   public static table = 'roles'
@@ -26,6 +27,12 @@ export default class Role extends BaseModel {
     pivotRelatedForeignKey: 'permissionKey',
   })
   public permissions!: ManyToMany<typeof Permission>
+
+  @hasMany(() => AssignedRole, {
+    foreignKey: 'roleKey',
+    localKey: 'key',
+  })
+  public assignedRoles!: HasMany<typeof AssignedRole>
 
   @column.dateTime({ autoCreate: true, columnName: 'createdAt', serializeAs: 'createdAt' })
   public createdAt!: DateTime

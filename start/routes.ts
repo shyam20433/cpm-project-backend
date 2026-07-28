@@ -11,6 +11,7 @@ Route.group(()=>{
 //roles
 Route.get('/roles', 'RolesController.getRoles')
 Route.get('/roles/:key', 'RolesController.getRole')
+Route.post('/roles/setup', 'RolesController.setupRole')
 Route.post('/roles', 'RolesController.postRole')
 Route.put('/roles/:key', 'RolesController.updateRole')
 Route.delete('/roles/:key', 'RolesController.deleteRole')
@@ -61,8 +62,11 @@ Route.delete(
   '/assigned-endpoints/:endpointId/:permissionKey',
   'AssignedEndpointsController.deleteAssignedEndpoint'
 )
+Route.post('/setup-all', 'SetupAllController.setupAll')
 
 }).middleware('jwtAuth')
 
 Route.post('/login', 'AuthController.login')
+
+
 

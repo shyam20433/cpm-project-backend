@@ -5,24 +5,16 @@ export default class AssignedEndpointsValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    sort: schema.string.optional({}, [rules.regex(/^-?(endpointId|permissionKey)$/)]),
+    sort: schema.string.optional({}, [
+      rules.regex(/^-?(endpointId|permissionKey)$/),
+    ]),
   })
 
   public messages = {
-    'sort.regex': 'Sort must be one of: endpointId, permissionKey, -endpointId, -permissionKey',
+    'sort.regex':
+      'Sort must be one of: endpointId, permissionKey, -endpointId, -permissionKey',
+    'sort.string': 'Sort must be a string',
   }
+
   public reportUnknownFields = true
-
-  public static validateQueryParams(qs: any) {
-    const allowedParams = ['sort']
-    const unknownParams = Object.keys(qs).filter((key) => !allowedParams.includes(key))
-
-    if (unknownParams.length > 0) {
-      throw new Error(
-        `Unknown fields: ${unknownParams.join(', ')}. Allowed: ${allowedParams.join(', ')}`
-      )
-    }
-
-    return true
-  }
 }

@@ -11,36 +11,25 @@ import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 import AssignedEndpointRepository from 'App/Repositories/AssignedEndpointRepository'
 
 export default class AssignedEndpointsController {
-  public async getAssignedEndpoints({ request, response }: HttpContextContract) {
-    try {
-      const qs = request.qs()
+public async getAssignedEndpoints({ request, response }: HttpContextContract) {
+  try {
+    const { sort } = await request.validate(AssignedEndpointsValidator)
 
-      try {
-        AssignedEndpointsValidator.validateQueryParams(qs)
-      } catch (error: any) {
-        return response.badRequest({
-          success: false,
-          message: 'Invalid query parameters',
-          error: error.message,
-        })
-      }
-      const { sort } = await request.validate(AssignedEndpointsValidator)
+    const assignedEndpoints = await AssignedEndpointRepository.getAssignedEndpoints(sort)
 
-      const assignedEndpoints = await AssignedEndpointRepository.getAssignedEndpoints(sort)
-
-      return response.send({
-        success: true,
-        message: 'assigned endpoints fetched successfully',
-        data: assignedEndpoints,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch assigned endpoints',
-        error: error.messages || error.message,
-      })
-    }
+    return response.ok({
+      success: true,
+      message: 'Assigned endpoints fetched successfully',
+      data: assignedEndpoints,
+    })
+  } catch (error: any) {
+    return response.badRequest({
+      success: false,
+      message: error.messages ? 'Invalid query parameters' : 'Failed to fetch assigned endpoints',
+      error: error.messages || error.message,
+    })
   }
+}
 
   public async getAssignedEndpoint({ request, response }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)

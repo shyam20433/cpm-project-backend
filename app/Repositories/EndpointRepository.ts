@@ -1,4 +1,3 @@
-import Database from '@ioc:Adonis/Lucid/Database'
 import Endpoint from 'App/Models/Endpoint'
 
 export default class EndpointRepository {
@@ -86,89 +85,67 @@ export default class EndpointRepository {
     return endpoint
   }
 
-public async getAccessDetails(data: any) {
-  const includeAll = data.include === 'all'
+  public async getAccessDetails(data: any) {
+    const includeAll = data.include === 'all'
 
-  const endpoint = await Endpoint.query()
-    .where('serviceId', data.serviceId)
-    .where('method', data.method)
-    .where('route', data.route)
-    .first()
+    const endpoint = await Endpoint.query()
+      .where('serviceId', data.serviceId)
+      .where('method', data.method)
+      .where('route', data.route)
+      .preload('permissions', (permissionsQuery) => {
+        if (!includeAll) {
+          permissionsQuery.where('status', true)
+        }
+        permissionsQuery.preload('roles', (rolesQuery) => {
+          if (!includeAll) {
+            rolesQuery.where('status', true)
+          }
+          rolesQuery.preload('assignedRoles')
+        })
+      })
+      .first()
 
-  if (!endpoint) {
-    throw new Error('ENDPOINT NOT FOUND')
+    if (!endpoint) {
+      throw new Error('ENDPOINT NOT FOUND')
+    }
+
+    const permissionsMap = new Map()
+    const rolesMap = new Map()
+    const usersSet = new Set()
+
+    for (const permission of endpoint.permissions) {
+      let hasAccess = false
+
+      for (const role of permission.roles) {
+        if (role.assignedRoles.length > 0) {
+          hasAccess = true
+          rolesMap.set(role.key, {
+            key: role.key
+          })
+
+          for (const assignedRole of role.assignedRoles) {
+            usersSet.add(assignedRole.email)
+          }
+        }
+      }
+
+      if (hasAccess) {
+        permissionsMap.set(permission.key, {
+          key: permission.key,
+          name: permission.name,
+          description: permission.description,
+          status: permission.status,
+        })
+      }
+    }
+
+    delete (endpoint as any).$preloaded.permissions
+
+    return {
+      endpoint,
+      permissions: [...permissionsMap.values()],
+      roles: [...rolesMap.keys()],
+      users: [...usersSet],
+    }
   }
-
-  const query = Database.from('assigned_endpoints')
-    .innerJoin(
-      'permissions',
-      'assigned_endpoints.permissionKey',
-      'permissions.key'
-    )
-    .innerJoin(
-      'assigned_permissions',
-      'permissions.key',
-      'assigned_permissions.permissionKey'
-    )
-    .innerJoin(
-      'roles',
-      'assigned_permissions.roleKey',
-      'roles.key'
-    )
-    .innerJoin(
-      'assigned_roles',
-      'roles.key',
-      'assigned_roles.roleKey'
-    )
-    .where('assigned_endpoints.endpointId', endpoint.id)
-    console.table(query)
-  if (!includeAll) {
-    query
-      .where('permissions.status', true)
-      .where('roles.status', true)
-  }
-
-  const rows = await query.select(
-    'permissions.key as permissionKey',
-    'permissions.name as permissionName',
-    'permissions.description as permissionDescription',
-    'permissions.status as permissionStatus',
-
-    'roles.key as roleKey',
-    'roles.name as roleName',
-    'roles.description as roleDescription',
-    'roles.status as roleStatus',
-
-    'assigned_roles.email'
-  )
-
-  const permissionsMap = new Map()
-  const rolesMap = new Map()
-  const usersSet = new Set()
-
-  for (const row of rows) {
-    permissionsMap.set(row.permissionKey, {
-      key: row.permissionKey,
-      name: row.permissionName,
-      description: row.permissionDescription,
-      status: row.permissionStatus,
-    })
-
-    rolesMap.set(row.roleKey, {
-      key: row.roleKey,
-      name: row.roleName,
-      description: row.roleDescription,
-      status: row.roleStatus,
-    })
-
-    usersSet.add(row.email)
-  }
-
-  return {
-    endpoint,
-    permissions: [...permissionsMap.values()],
-    roles: [...rolesMap.values()],
-    users: [...usersSet],
-  }
-}
 }

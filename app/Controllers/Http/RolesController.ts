@@ -1,11 +1,12 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-
+import Database from '@ioc:Adonis/Lucid/Database'
 import RoleRepository from 'App/Repositories/RoleRepository'
 
 import IsIncludeValidator from 'App/Validators/FetchAll/IsIncludeValidator'
 import CreateRoleValidator from 'App/Validators/Role/CreateRoleValidator'
 import DeleteRoleValidator from 'App/Validators/Role/DeleteRoleValidator'
 import GetRoleValidator from 'App/Validators/Role/GetRoleValidator'
+import SetupRoleValidator from 'App/Validators/Role/SetupRoleValidator'
 import UpdateRoleValidator from 'App/Validators/Role/UpdateRoleValidator'
 const roleRepository = new RoleRepository()
 export default class RolesController {
@@ -70,6 +71,31 @@ export default class RolesController {
       })
     }
   }
+
+public async setupRole({ request, response }: HttpContextContract) {
+  const data = await request.validate(SetupRoleValidator)
+
+  const trx = await Database.transaction()
+
+  try {
+    const result = await roleRepository.setupRole(data, trx)
+
+    await trx.commit()
+
+    return response.created({
+      success: true,
+      message: 'Role setup completed successfully',
+      data: result,
+    })
+  } catch (error: any) {
+    await trx.rollback()
+
+    return response.badRequest({
+      success: false,
+      message: error.messages || error.message,
+    })
+  }
+}
 
   public async updateRole({ request, response }: HttpContextContract) {
     try {
