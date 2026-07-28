@@ -19,7 +19,7 @@ export default class PermissionRepository {
     }
     query.limit(20)
 
-    return await query
+    return query
   }
 
   public async findByKey(key: string) {
@@ -37,7 +37,7 @@ export default class PermissionRepository {
       throw new Error('Permission already exists')
     }
 
-    return await Permission.create(data)
+    return  Permission.create(data)
   }
 
   public async updatePermission(key: string, data: any) {

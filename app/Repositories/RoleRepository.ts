@@ -19,7 +19,7 @@ export default class RoleRepository {
       }
     }
     query.limit(20)
-    return await query
+    return  query
   }
 
   public async findByKey(key: string) {
@@ -37,7 +37,7 @@ export default class RoleRepository {
       throw new Error('Role already exists')
     }
 
-    return await Role.create(data)
+    return  Role.create(data)
   }
 
   public async updateRole(key: string, data: any) {

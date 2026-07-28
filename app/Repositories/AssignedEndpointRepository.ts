@@ -23,11 +23,11 @@ export default class AssignedEndpointRepository {
       }
     }
     query.limit(20)
-    return await query
+    return query
   }
 
   public static async getAssignedEndpoint(endpointId: number, permissionKey: string) {
-    return await AssignedEndpoint.query()
+    return AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
       .preload('endpoint')
@@ -36,11 +36,11 @@ export default class AssignedEndpointRepository {
   }
 
   public static async create(data: any) {
-    return await AssignedEndpoint.create(data)
+    return  AssignedEndpoint.create(data)
   }
 
   public static async find(endpointId: number, permissionKey: string) {
-    return await AssignedEndpoint.query()
+    return  AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
       .first()

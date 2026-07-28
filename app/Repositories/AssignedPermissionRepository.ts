@@ -24,11 +24,11 @@ export default class AssignedPermissionRepository {
     }
     query.limit(20)
 
-    return await query
+    return  query
   }
 
   public static async getAssignedPermission(roleKey: string, permissionKey: string) {
-    return await AssignedPermission.query()
+    return  AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .preload('role')
@@ -37,18 +37,18 @@ export default class AssignedPermissionRepository {
   }
 
   public static async exists(roleKey: string, permissionKey: string) {
-    return await AssignedPermission.query()
+    return  AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .first()
   }
 
   public static async create(data: any) {
-    return await AssignedPermission.create(data)
+    return  AssignedPermission.create(data)
   }
 
   public static async find(roleKey: string, permissionKey: string) {
-    return await AssignedPermission.query()
+    return  AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .first()

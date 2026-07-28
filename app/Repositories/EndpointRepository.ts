@@ -21,7 +21,7 @@ export default class EndpointRepository {
       }
     }
 
-    return await query
+    return  query
   }
 
   public async findById(id: number) {
@@ -43,7 +43,7 @@ export default class EndpointRepository {
       throw new Error('Endpoint already exists')
     }
 
-    return await Endpoint.create(data)
+    return  Endpoint.create(data)
   }
 
   public async updateEndpoint(id: number, data: any) {

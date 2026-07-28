@@ -19,7 +19,7 @@ export default class AssignedRoleRepository {
       }
     }
     query.limit(20)
-    return await query
+    return  query
   }
 
   public async findById(id: number) {
@@ -36,11 +36,11 @@ export default class AssignedRoleRepository {
   }
 
   public async exists(roleKey: string, email: string) {
-    return await AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
+    return  AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
   }
 
   public async createAssignedRole(data: any) {
-    return await AssignedRole.create(data)
+    return  AssignedRole.create(data)
   }
 
   public async updateAssignedRole(id: number, data: any) {
