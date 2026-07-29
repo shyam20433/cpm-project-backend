@@ -8,31 +8,67 @@ export default class ExceptionHandler extends HttpExceptionHandler {
   }
 
   public async handle(error: any, ctx: HttpContextContract) {
-    if (error.code === 'E_VALIDATION_FAILURE') {
-      return ctx.response.status(422).send({ // ( unprocessable Entity ) 422--standard code for validation error
-        success: false,
-        message: 'Validation failed',
-        errors: error.messages,
-      })
-    }
-
-    if (error.status) {
-      return ctx.response.status(error.status).send({
-        success: false,
-        message: error.message,
-        code: error.code,
-      })
-    }
-
-    Logger.error(error)
-
-    return ctx.response.status(500).send({
+  if (error.code === 'E_VALIDATION_FAILURE') {
+    return ctx.response.status(422).send({
       success: false,
-      message: 'Internal Server Error',
+      message: 'Validation failed',
+      errors: error.messages,
     })
   }
 
-  public async report(error: any, ctx: HttpContextContract) {
-    return super.report(error, ctx)
+  switch (error.status) {
+    case 400:
+      return ctx.response.status(400).send({
+        success: false,
+        message: error.message || 'Bad Request',
+      })
+
+    case 401:
+      return ctx.response.status(401).send({
+        success: false,
+        message: error.message || 'Unauthorized',
+      })
+
+    case 403:
+      return ctx.response.status(403).send({
+        success: false,
+        message: error.message || 'Forbidden',
+      })
+
+    case 404:
+      return ctx.response.status(404).send({
+        success: false,
+        message: error.message || 'Not Found',
+      })
+
+    case 406:
+      return ctx.response.status(406).send({
+        success: false,
+        message: error.message || 'Not Acceptable',
+      })
+
+    case 409:
+      return ctx.response.status(409).send({
+        success: false,
+        message: error.message || 'Conflict',
+      })
+
+    case 422:
+      return ctx.response.status(422).send({
+        success: false,
+        message: error.message || 'Unprocessable Entity',
+      })
+
+    case 500:
+      return ctx.response.status(500).send({
+        success: false,
+        message: error.message || 'Internal Server Error',
+      })
   }
+
+  return ctx.response.status(500).send({
+    success: false,
+    message: 'Internal Server Error',
+  })
+}
 }
