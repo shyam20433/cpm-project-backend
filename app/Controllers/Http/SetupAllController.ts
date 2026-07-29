@@ -23,13 +23,9 @@ export default class SetupAllController {
         message: 'Setup completed successfully',
         data: result,
       })
-    } catch (error: any) {
+    } catch (error) {
       await trx.rollback()
-
-      return response.badRequest({
-        success: false,
-        message: error.message,
-      })
+      throw error
     }
   }
 }

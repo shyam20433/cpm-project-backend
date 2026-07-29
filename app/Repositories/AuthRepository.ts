@@ -16,9 +16,9 @@ export default class AuthRepository {
         roleKey: assignedRole.roleKey,
       },
       Env.get('APP_KEY'),
-      {
+/*       {
         expiresIn: '1d',
-      }
+      } */
     )
 
     return {

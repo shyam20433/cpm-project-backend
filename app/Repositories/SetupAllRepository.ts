@@ -5,6 +5,7 @@ import AssignedPermission from 'App/Models/AssignedPermission'
 import AssignedEndpoint from 'App/Models/AssignedEndpoint'
 import AssignedRole from 'App/Models/AssignedRole'
 import { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
+import { Exception } from '@adonisjs/core/build/standalone'
 /*
 interface SetupAllPayload {
   role: {
@@ -36,83 +37,101 @@ export default class RoleRepository {
     data: any,
     trx: TransactionClientContract
   ) {
-    const roleExists = await Role.query()
-      .useTransaction(trx)
-      .where('key', data.role.key)
-      .first()
+    const [roleExists, permissionExists, endpointExists] = await Promise.all([
+      Role.query().where('key', data.role.key).first(),
+
+      Permission.query().where('key', data.permission.key).first(),
+
+      Endpoint.query().where('serviceId', data.endpoint.serviceId).where('route', data.endpoint.route)
+        .where('method', data.endpoint.method).first(),
+    ])
 
     if (roleExists) {
-      throw new Error('Role already exists')
+      throw new Exception(
+        'Role already exists',
+        409,
+        'E_ROLE_EXISTS'
+      )
     }
-
-    const permissionExists = await Permission.query()
-      .useTransaction(trx)
-      .where('key', data.permission.key)
-      .first()
 
     if (permissionExists) {
-      throw new Error('Permission already exists')
+      throw new Exception(
+        'Permission already exists',
+        409,
+        'E_PERMISSION_EXISTS'
+      )
     }
-
-    const endpointExists = await Endpoint.query()
-      .useTransaction(trx)
-      .where('serviceId', data.endpoint.serviceId)
-      .where('route', data.endpoint.route)
-      .where('method', data.endpoint.method)
-      .first()
 
     if (endpointExists) {
-      throw new Error('Endpoint already exists')
+      throw new Exception(
+        'Endpoint already exists',
+        409,
+        'E_ENDPOINT_EXISTS'
+      )
     }
 
-    const role = await Role.create(data.role, {
-      client: trx,
-    })
-
-    const permission = await Permission.create(data.permission, {
-      client: trx,
-    })
-
-    const endpoint = await Endpoint.create(data.endpoint, {
-      client: trx,
-    })
-
-
-    await AssignedPermission.create(
-      {
-        roleKey: role.key,
-        permissionKey: permission.key,
-      },
-      {
+    const [role, permission, endpoint] = await Promise.all([
+      Role.create(data.role, {
         client: trx,
-      }
-    )
+      }),
 
-    await AssignedEndpoint.create(
-      {
-        endpointId: endpoint.id,
-        permissionKey: permission.key,
-      },
-      {
+      Permission.create(data.permission, {
         client: trx,
-      }
-    )
+      }),
 
-    await AssignedRole.create(
-      {
-        roleKey: role.key,
-        email: data.email,
-      },
-      {
+      Endpoint.create(data.endpoint, {
         client: trx,
-      }
-    )
+      }),
+    ])
+
+    await Promise.all([
+      AssignedPermission.create(
+        {
+          roleKey: role.key,
+          permissionKey: permission.key,
+        },
+        {
+          client: trx,
+        }
+      ),
+
+      AssignedEndpoint.create(
+        {
+          endpointId: endpoint.id,
+          permissionKey: permission.key,
+        },
+        {
+          client: trx,
+        }
+      ),
+
+      AssignedRole.create(
+        {
+          roleKey: role.key,
+          email: data.email,
+        },
+        {
+          client: trx,
+        }
+      ),
+    ])
 
     return {
       role,
       permission,
       endpoint,
-      email: data.email,
+      assignedPermission: {
+        roleKey: role.key,
+        permissionKey: permission.key,
+      },
+      assignedEndpoint: {
+        endpointId: endpoint.id,
+        permissionKey: permission.key,
+      },
+      assignedRole: {
+        roleKey: role.key,
+        email: data.email,
+      },
     }
   }
 }

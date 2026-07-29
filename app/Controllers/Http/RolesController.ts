@@ -12,67 +12,45 @@ const roleRepository = new RoleRepository()
 export default class RolesController {
 
 
-  public async getRoles({ request, response }: HttpContextContract) {
-    try {
+  public async getRoles({ request }: HttpContextContract) {
+
       const filters = await request.validate(IsIncludeValidator)
 
       const roles = await roleRepository.getAll(filters)
 
-      return response.send({
+      return {
         success: true,
         message: 'Roles fetched successfully',
         data: roles,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch roles',
-        error: error.messages || error.message,
-      })
-    }
+      }
+
   }
 
-  public async getRole({ request, response }: HttpContextContract) {
+  public async getRole({ request }: HttpContextContract) {
     const { key } = await request.validate(GetRoleValidator)
 
-    try {
       const role = await roleRepository.findByKey(key)
 
-      return response.send({
+      return {
         success: true,
         message: 'Role fetched successfully',
         data: role,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch role',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async postRole({ request, response }: HttpContextContract) {
+  public async postRole({ request }: HttpContextContract) {
     const data = await request.validate(CreateRoleValidator)
 
-    try {
       const role = await roleRepository.createRole(data)
 
-      return response.created({
+      return {
         success: true,
         message: 'Role created successfully',
         data: role,
-      })
-    } catch (error: any) {
-      return response.notAcceptable({
-        success: false,
-        message: 'Role already exists',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-public async setupRole({ request, response }: HttpContextContract) {
+public async setupRole({ request }: HttpContextContract) {
   const data = await request.validate(SetupRoleValidator)
 
   const trx = await Database.transaction()
@@ -82,43 +60,31 @@ public async setupRole({ request, response }: HttpContextContract) {
 
     await trx.commit()
 
-    return response.created({
+    return {
       success: true,
       message: 'Role setup completed successfully',
       data: result,
-    })
-  } catch (error: any) {
+    }
+  } catch (error) {
     await trx.rollback()
-
-    return response.badRequest({
-      success: false,
-      message: error.messages || error.message,
-    })
+    throw error
   }
 }
 
-  public async updateRole({ request, response }: HttpContextContract) {
-    try {
+  public async updateRole({ request }: HttpContextContract) {
       const data = await request.validate(UpdateRoleValidator)
       const { key, ...newData } = data
       const role = await roleRepository.updateRole(key, newData)
 
-      return response.send({
-        success: true,
-        message: 'Role updated successfully',
-        data: role,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to update role',
-        error: error.messages || error.message,
-      })
-    }
+      return {
+  success: true,
+  message: 'Role updated successfully',
+  data: role,
+}
+
   }
 
-  public async deleteRole({ request, response }: HttpContextContract) {
-    try {
+  public async deleteRole({ request}: HttpContextContract) {
       let roles
       const { key, updatestatus } = await request.validate(DeleteRoleValidator)
 
@@ -128,17 +94,10 @@ public async setupRole({ request, response }: HttpContextContract) {
         roles = await roleRepository.enableRole(key)
       }
 
-      return response.send({
+      return {
         success: true,
         message: updatestatus ? 'Role enabled successfully' : 'Role disabled successfully',
         data: roles,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to disable role',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 }

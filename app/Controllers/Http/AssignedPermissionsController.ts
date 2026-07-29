@@ -11,191 +11,109 @@ import AssignedPermissionsValidator from 'App/Validators/FetchAll/AssignedPermis
 import AssignedPermissionRepository from 'App/Repositories/AssignedPermissionRepository'
 
 export default class AssignedPermissionsController {
-  public async getAssignedPermissions({ request, response }: HttpContextContract) {
-    try {
-      const qs = request.qs()
+  public async getAssignedPermissions({ request }: HttpContextContract) {
 
-      try {
-        AssignedPermissionsValidator.validateQueryParams(qs)
-      } catch (error: any) {
-        return response.badRequest({
-          success: false,
-          message: 'Invalid query parameters',
-          error: error.message,
-        })
-      }
-      const { sort } = await request.validate(AssignedPermissionsValidator)
+    const qs = request.qs()
+    AssignedPermissionsValidator.validateQueryParams(qs)
+    const { sort } = await request.validate(AssignedPermissionsValidator)
 
-      const assignedPermissions = await AssignedPermissionRepository.getAssignedPermissions(sort)
+    const assignedPermissions = await AssignedPermissionRepository.getAssignedPermissions(sort)
 
-      return response.send({
-        success: true,
-        message: 'assigned permissions fetched successfully',
-        data: assignedPermissions,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch assigned permissions',
-        error: error.messages || error.message,
-      })
+    return {
+      success: true,
+      message: 'assigned permissions fetched successfully',
+      data: assignedPermissions,
     }
+
   }
 
-  public async getAssignedPermission({ request, response }: HttpContextContract) {
-    try {
-      const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
+  public async getAssignedPermission({ request }: HttpContextContract) {
 
-      await CheckRoleExists.validate(roleKey)
-      await CheckPermissionExists.validate(permissionKey)
+    const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
 
-      const assignedPermission = await AssignedPermissionRepository.getAssignedPermission(
-        roleKey,
-        permissionKey
-      )
+    await CheckRoleExists.validate(roleKey)
+    await CheckPermissionExists.validate(permissionKey)
 
-      if (!assignedPermission) {
-        return response.notFound({
-          success: false,
-          message: 'Assigned permission not found',
-        })
-      }
+    const assignedPermission = await AssignedPermissionRepository.getAssignedPermission(
+      roleKey,
+      permissionKey
+    )
 
-      return response.send({
-        success: true,
-        message: 'assigned permission fetched successfully',
-        data: assignedPermission,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch assigned permission',
-        error: error.messages || error.message,
-      })
+
+
+    return {
+      success: true,
+      message: 'assigned permission fetched successfully',
+      data: assignedPermission,
     }
   }
 
   public async postAssignedPermission({ request, response }: HttpContextContract) {
-    try {
-      const data = await request.validate(CreateAssignedPermissionValidator)
 
-      await CheckRoleExists.validate(data.roleKey)
-      await CheckPermissionExists.validate(data.permissionKey)
+    const data = await request.validate(CreateAssignedPermissionValidator)
 
-      const exists = await AssignedPermissionRepository.exists(data.roleKey, data.permissionKey)
+    await CheckRoleExists.validate(data.roleKey)
+    await CheckPermissionExists.validate(data.permissionKey)
 
-      if (exists) {
-        return response.badRequest({
-          success: false,
-          message: 'Assigned permission already exists',
-        })
-      }
+    
+    const assignedPermission = await AssignedPermissionRepository.create(data)
 
-      const assignedPermission = await AssignedPermissionRepository.create(data)
+    return response.created({
+      success: true,
+      message: 'assigned permission created successfully',
+      data: assignedPermission,
+    })
 
-      return response.created({
-        success: true,
-        message: 'assigned permission created successfully',
-        data: assignedPermission,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to assign permission',
-        error: error.messages || error.message,
-      })
-    }
   }
 
-  public async updateAssignedPermission({ request, response }: HttpContextContract) {
-    try {
-      const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
+  public async updateAssignedPermission({ request }: HttpContextContract) {
 
-      await CheckRoleExists.validate(roleKey)
-      await CheckPermissionExists.validate(permissionKey)
+    const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
 
-      const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
+    await CheckRoleExists.validate(roleKey)
+    await CheckPermissionExists.validate(permissionKey)
 
-      if (!assignedPermission) {
-        return response.notFound({
-          success: false,
-          message: 'Assigned permission not found',
-        })
-      }
+    const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 
-      const data = await request.validate(UpdateAssignedPermissionValidator)
+    const data = await request.validate(UpdateAssignedPermissionValidator)
 
-      const updatedRoleKey = data.roleKey ?? assignedPermission.roleKey
-      const updatedPermissionKey = data.permissionKey ?? assignedPermission.permissionKey
+    const updatedRoleKey = data.roleKey ?? assignedPermission.roleKey
+    const updatedPermissionKey = data.permissionKey ?? assignedPermission.permissionKey
 
-      await CheckRoleExists.validate(updatedRoleKey)
-      await CheckPermissionExists.validate(updatedPermissionKey)
+    await CheckRoleExists.validate(updatedRoleKey)
+    await CheckPermissionExists.validate(updatedPermissionKey)
 
-      const duplicate = await AssignedPermissionRepository.exists(
-        updatedRoleKey,
-        updatedPermissionKey
-      )
 
-      if (
-        duplicate &&
-        !(
-          duplicate.roleKey === assignedPermission.roleKey &&
-          duplicate.permissionKey === assignedPermission.permissionKey
-        )
-      ) {
-        return response.badRequest({
-          success: false,
-          message: 'Assigned permission already exists',
-        })
-      }
 
-      const updatedAssignedPermission = await AssignedPermissionRepository.update(
-        assignedPermission,
-        data
-      )
 
-      return response.send({
-        success: true,
-        message: 'assigned permission updated successfully',
-        data: updatedAssignedPermission,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to update assigned permission',
-        error: error.messages || error.message,
-      })
+
+    const updatedAssignedPermission = await AssignedPermissionRepository.update(
+      assignedPermission,
+      data
+    )
+
+    return {
+      success: true,
+      message: 'assigned permission updated successfully',
+      data: updatedAssignedPermission,
     }
+
   }
 
-  public async deleteAssignedPermission({ request, response }: HttpContextContract) {
-    try {
-      const { roleKey, permissionKey } = await request.validate(DeleteAssignedPermissionValidator)
+  public async deleteAssignedPermission({ request}: HttpContextContract) {
+    const { roleKey, permissionKey } = await request.validate(DeleteAssignedPermissionValidator)
 
-      await CheckRoleExists.validate(roleKey)
-      await CheckPermissionExists.validate(permissionKey)
+    await CheckRoleExists.validate(roleKey)
+    await CheckPermissionExists.validate(permissionKey)
 
-      const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
+    const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 
-      if (!assignedPermission) {
-        return response.notFound({
-          success: false,
-          message: 'Assigned permission not found',
-        })
-      }
 
-      await AssignedPermissionRepository.delete(assignedPermission)
+    await AssignedPermissionRepository.delete(assignedPermission)
 
-      return response.send({
-        success: true,
-        message: 'assigned permission deleted successfully',
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to delete assigned permission',
-        error: error.messages || error.message,
-      })
+    return {
+      success: true,
+      message: 'assigned permission deleted successfully',
     }
   }
 }

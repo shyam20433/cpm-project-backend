@@ -1,3 +1,5 @@
+import { Exception } from '@adonisjs/core/build/standalone'
+
 import AssignedPermission from 'App/Models/AssignedPermission'
 
 export default class AssignedPermissionRepository {
@@ -28,42 +30,96 @@ export default class AssignedPermissionRepository {
   }
 
   public static async getAssignedPermission(roleKey: string, permissionKey: string) {
-    return  AssignedPermission.query()
+    const assignedPermission=await   AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .preload('role')
       .preload('permission')
       .first()
+     if (!assignedPermission){
+      throw new Exception('AssignedPermission Not Found', 404,
+        'E_ASSIGNED_PERMISSION_NOT_FOUND'
+
+      )
+     }
+
+    return assignedPermission
   }
 
   public static async exists(roleKey: string, permissionKey: string) {
-    return  AssignedPermission.query()
+    return await  AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .first()
+
   }
 
   public static async create(data: any) {
-    return  AssignedPermission.create(data)
+    const exists = await this.exists(
+      data.roleKey,
+      data.permissionKey
+    )
+
+    if (exists) {
+      throw new Exception(
+        'Assigned permission already exists',
+        409,
+        'E_ASSIGNED_PERMISSION_EXISTS'
+      )
+    }
+
+    return AssignedPermission.create(data)
   }
 
   public static async find(roleKey: string, permissionKey: string) {
-    return  AssignedPermission.query()
+    const assignedPermission= await AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .first()
+
+
+          if (!assignedPermission) {
+            throw new Exception(
+              'Assigned permission not found',
+              404,
+              'E_ASSIGNED_PERMISSION_NOT_FOUND'
+            )
+          }
+
+      return assignedPermission
+
   }
 
-  public static async update(assignedPermission: AssignedPermission, data: any) {
-    const oldRoleKey = assignedPermission.roleKey
-    const oldPermissionKey = assignedPermission.permissionKey
+  public static async update(
+    assignedPermission: AssignedPermission,
+    data: any
+  ) {
+    const newRoleKey = data.roleKey ?? assignedPermission.roleKey
+    const newPermissionKey =
+      data.permissionKey ?? assignedPermission.permissionKey
 
-    await AssignedPermission.query()
-      .where('roleKey', oldRoleKey)
-      .where('permissionKey', oldPermissionKey)
-      .update(data)
+    const exists = await AssignedPermission.query()
+      .where('roleKey', newRoleKey)
+      .where('permissionKey', newPermissionKey)
+      .first()
+
+    if (
+      exists &&
+      (
+        exists.roleKey !== assignedPermission.roleKey ||
+        exists.permissionKey !== assignedPermission.permissionKey
+      )
+    ) {
+      throw new Exception(
+        'Assigned permission already exists',
+        409,
+        'E_ASSIGNED_PERMISSION_EXISTS'
+      )
+    }
 
     assignedPermission.merge(data)
+    await assignedPermission.save()
+
     return assignedPermission
   }
 

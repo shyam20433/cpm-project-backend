@@ -11,83 +11,49 @@ import CheckPermissionExists from 'App/Validators/Exists/CheckPermissionExists'
 import AssignedEndpointRepository from 'App/Repositories/AssignedEndpointRepository'
 
 export default class AssignedEndpointsController {
-public async getAssignedEndpoints({ request, response }: HttpContextContract) {
-  try {
+public async getAssignedEndpoints({ request }: HttpContextContract) {
     const { sort } = await request.validate(AssignedEndpointsValidator)
-
-    const assignedEndpoints = await AssignedEndpointRepository.getAssignedEndpoints(sort)
-
-    return response.ok({
+    const assignedEndpoint=await AssignedEndpointRepository.getAssignedEndpoints(sort)
+    return {
       success: true,
       message: 'Assigned endpoints fetched successfully',
-      data: assignedEndpoints,
-    })
-  } catch (error: any) {
-    return response.badRequest({
-      success: false,
-      message: error.messages ? 'Invalid query parameters' : 'Failed to fetch assigned endpoints',
-      error: error.messages || error.message,
-    })
-  }
+      data: assignedEndpoint,
+    }
 }
-
-  public async getAssignedEndpoint({ request, response }: HttpContextContract) {
+  public async getAssignedEndpoint({ request }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
 
-    try {
       await CheckEndpointExists.validate(endpointId)
       await CheckPermissionExists.validate(permissionKey)
 
       const assignedEndpoint = await AssignedEndpointRepository.getAssignedEndpoint(
         endpointId,
-        permissionKey
-      )
-
-      if (!assignedEndpoint) {
-        return response.notFound({
-          success: false,
-          message: 'Assigned endpoint not found',
-        })
-      }
-
-      return response.send({
+        permissionKey)
+      return {
         success: true,
         message: 'assigned endpoint fetched successfully',
         data: assignedEndpoint,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch assigned endpoint',
-        error: error.messages || error.message,
-      })
-    }
-  }
+      }
+}
 
-  public async postAssignedEndpoint({ request, response }: HttpContextContract) {
-    try {
+  public async postAssignedEndpoint({ request }: HttpContextContract) {
+
       const data = await request.validate(CreateAssignedEndpointValidator)
       await CheckPermissionExists.validate(data.permissionKey)
       await CheckEndpointExists.validate(data.endpointId)
 
       const assignedEndpoint = await AssignedEndpointRepository.create(data)
 
-      return response.created({
+      return {
         success: true,
         message: 'assigned endpoint created successfully',
         data: assignedEndpoint,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to assign endpoint',
-        error: error.messages || error.message,
-      })
-    }
+      }
+
   }
 
-  public async updateAssignedEndpoint({ request, response }: HttpContextContract) {
-    try {
+  public async updateAssignedEndpoint({ request }: HttpContextContract) {
+
       const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
 
       await CheckEndpointExists.validate(endpointId)
@@ -95,12 +61,6 @@ public async getAssignedEndpoints({ request, response }: HttpContextContract) {
 
       const assignedEndpoint = await AssignedEndpointRepository.find(endpointId, permissionKey)
 
-      if (!assignedEndpoint) {
-        return response.notFound({
-          success: false,
-          message: 'Assigned endpoint not found',
-        })
-      }
 
       const data = await request.validate(UpdateAssignedEndpointValidator)
 
@@ -116,47 +76,26 @@ public async getAssignedEndpoints({ request, response }: HttpContextContract) {
         data
       )
 
-      return response.send({
+      return {
         success: true,
         message: 'assigned endpoint updated successfully',
         data: updatedAssignedEndpoint,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to update assigned endpoint',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async deleteAssignedEndpoint({ request, response }: HttpContextContract) {
-    try {
+  public async deleteAssignedEndpoint({ request }: HttpContextContract) {
       const { endpointId, permissionKey } = await request.validate(DeleteAssignedEndpointValidator)
       await CheckEndpointExists.validate(endpointId)
       await CheckPermissionExists.validate(permissionKey)
 
       const assignedEndpoint = await AssignedEndpointRepository.find(endpointId, permissionKey)
 
-      if (!assignedEndpoint) {
-        return response.notFound({
-          success: false,
-          message: 'Assigned endpoint not found',
-        })
-      }
-
       await AssignedEndpointRepository.delete(assignedEndpoint)
 
-      return response.send({
+      return {
         success: true,
         message: 'assigned endpoint deleted successfully',
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to delete assigned endpoint',
-        error: error.messages || error.message,
-      })
-    }
+      }
+
   }
 }

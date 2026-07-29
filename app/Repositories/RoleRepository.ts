@@ -3,7 +3,7 @@ import Permission from 'App/Models/Permission'
 import AssignedPermission from 'App/Models/AssignedPermission'
 import AssignedRole from 'App/Models/AssignedRole'
 import { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
-
+import { Exception } from '@adonisjs/core/build/standalone'
 /* interface SetupRolePayload {
   role: {
     key: string
@@ -42,7 +42,11 @@ export default class RoleRepository {
     const role = await Role.query().where('key', key).first()
 
     if (!role) {
-      throw new Error('ROLE NOT FOUND')
+      throw new Exception(
+        'Role not found',
+        404,
+        'E_ROLE_NOT_FOUND'
+      )
     }
 
     return role
@@ -58,7 +62,11 @@ export default class RoleRepository {
       .first()
 
     if (exists) {
-      throw new Error('Role already exists')
+      throw new Exception(
+        'Role already exists',
+        409,
+        'E_ROLE_EXISTS'
+      )
     }
 
     const role = await Role.create(data.role, {
@@ -66,31 +74,36 @@ export default class RoleRepository {
     })
 
     const permissions = [...new Set(data.permissions as string[])]
-
-
-
-    for (const permissionKey of permissions) {
-
-      const permission = await Permission.query()
-        .useTransaction(trx)
-        .where('key', permissionKey)
-        .first()
-
-      if (!permission) {
-        throw new Error(`Permission '${permissionKey}' not found`)
-      }
-
-      await AssignedPermission.create(
-        {
-          roleKey: role.key,
-          permissionKey,
-        },
-        {
-          client: trx,
-        }
+    const permissionRecords = await Promise.all(
+      permissions.map((permissionKey) =>
+        Permission.query()
+          .useTransaction(trx)
+          .where('key', permissionKey)
+          .first()
       )
-    }
-
+    )
+    permissionRecords.forEach((permission, index) => {
+      if (!permission) {
+        throw new Exception(
+          `Permission '${permissions[index]}' not found`,
+          404,
+          'E_PERMISSION_NOT_FOUND'
+        )
+      }
+    })
+    await Promise.all(
+      permissions.map((permissionKey) =>
+        AssignedPermission.create(
+          {
+            roleKey: role.key,
+            permissionKey,
+          },
+          {
+            client: trx,
+          }
+        )
+      )
+    )
     await AssignedRole.create(
       {
         roleKey: role.key,
@@ -112,21 +125,38 @@ export default class RoleRepository {
     const exists = await Role.query().where('key', data.key).first()
 
     if (exists) {
-      throw new Error('Role already exists')
+      throw new Exception(
+  'Role already exists',
+  409,
+  'E_ROLE_EXISTS'
+)
     }
 
     return Role.create(data)
   }
 
-  public async updateRole(key: string, data: any) {
-    const role = await this.findByKey(key)
+public async updateRole(key: string, data: any) {
+  const role = await this.findByKey(key)
 
-    role.merge(data)
+  const newKey = data.key ?? role.key
 
-    await role.save()
+  const exists = await Role.query()
+    .where('key', newKey)
+    .first()
 
-    return role
+  if (exists && exists.key !== role.key) {
+    throw new Exception(
+      'Role already exists',
+      409,
+      'E_ROLE_EXISTS'
+    )
   }
+
+  role.merge(data)
+  await role.save()
+
+  return role
+}
 
   public async disableRole(key: string) {
     const role = await this.findByKey(key)

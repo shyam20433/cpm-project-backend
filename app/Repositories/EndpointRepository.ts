@@ -1,5 +1,5 @@
 import Endpoint from 'App/Models/Endpoint'
-
+import { Exception } from '@adonisjs/core/build/standalone'
 export default class EndpointRepository {
   public async getAll(filters: any) {
     const { include, sort } = filters
@@ -20,14 +20,18 @@ export default class EndpointRepository {
       }
     }
 
-    return  query
+    return query
   }
 
   public async findById(id: number) {
-    const endpoint = await Endpoint.query().where('id', id).first()
-    if (!endpoint) {
-      throw new Error('ENDPOINT NOT FOUND')
-    }
+    const endpoint = await Endpoint.find(id)
+      if (!endpoint) {
+    throw new Exception(
+      'Endpoint not found',
+      404,
+      'E_ENDPOINT_NOT_FOUND'
+    )
+  }
     return endpoint
   }
 
@@ -39,32 +43,46 @@ export default class EndpointRepository {
       .first()
 
     if (exists) {
-      throw new Error('Endpoint already exists')
+      throw new Exception(
+        'Endpoint already exists',
+        409,
+        'E_ENDPOINT_EXISTS'
+      )
     }
 
-    return  Endpoint.create(data)
+    return Endpoint.create(data)
   }
 
   public async updateEndpoint(id: number, data: any) {
-    const endpoint = await Endpoint.find(id)
+    const endpoint = await Endpoint.findOrFail(id)
 
-    if (!endpoint) {
-      throw new Error('NOT FOUND')
+    const newServiceId = data.serviceId ?? endpoint.serviceId
+    const newMethod = data.method ?? endpoint.method
+    const newRoute = data.route ?? endpoint.route
+
+    const exists = await Endpoint.query()
+      .where('serviceId', newServiceId)
+      .where('method', newMethod)
+      .where('route', newRoute)
+      .first()
+
+    if (exists && exists.id !== endpoint.id) {
+      throw new Exception(
+        'Endpoint already exists',
+        409,
+        'E_ENDPOINT_EXISTS'
+      )
     }
 
     endpoint.merge(data)
-
     await endpoint.save()
 
     return endpoint
   }
-
   public async disableEndpoint(id: number) {
-    const endpoint = await Endpoint.find(id)
+    const endpoint = await Endpoint.findOrFail(id)
 
-    if (!endpoint) {
-      throw new Error('ENDPOINT NOT FOUND')
-    }
+
 
     endpoint.status = false
 
@@ -73,15 +91,9 @@ export default class EndpointRepository {
     return endpoint
   }
   public async enableEndpoint(id: number) {
-    const endpoint = await Endpoint.find(id)
-    if (!endpoint) {
-      throw new Error('ENDPOINT NOT FOUND')
-    }
-
+    const endpoint = await Endpoint.findOrFail(id)
     endpoint.status = true
-
     await endpoint.save()
-
     return endpoint
   }
 
@@ -106,9 +118,12 @@ export default class EndpointRepository {
       .first()
 
     if (!endpoint) {
-      throw new Error('ENDPOINT NOT FOUND')
+      throw new Exception(
+        'Endpoint not found',
+        404,
+        'E_ENDPOINT_NOT_FOUND'
+      )
     }
-
     const permissionsMap = new Map()
     const rolesMap = new Map()
     const usersSet = new Set()

@@ -11,88 +11,54 @@ import GetPermissionValidator from 'App/Validators/Permission/GetPermissionValid
 const permissionRepository = new PermissionRepository()
 
 export default class PermissionsController {
-  public async getPermissions({ request, response }: HttpContextContract) {
-    try {
+  public async getPermissions({ request }: HttpContextContract) {
       const filters = await request.validate(IsIncludeValidator)
-
       const permissions = await permissionRepository.getAll(filters)
-
-      return response.send({
+      return {
         success: true,
         message: 'Permissions fetched successfully',
         data: permissions,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch permissions',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async getPermission({ request, response }: HttpContextContract) {
+  public async getPermission({ request }: HttpContextContract) {
     const { key } = await request.validate(GetPermissionValidator)
 
-    try {
       const permission = await permissionRepository.findByKey(key)
-      return response.send({
+      return {
         success: true,
         message: 'Permission fetched successfully',
         data: permission,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch permission',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async postPermission({ request, response }: HttpContextContract) {
+  public async postPermission({ request }: HttpContextContract) {
     const data = await request.validate(CreatePermissionValidator)
 
-    try {
       const permission = await permissionRepository.createPermission(data)
 
-      return response.created({
+      return {
         success: true,
         message: 'Permission created successfully',
         data: permission,
-      })
-    } catch (error: any) {
-      return response.notAcceptable({
-        success: false,
-        message: 'Failed to create permission',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async updatePermission({ request, response }: HttpContextContract) {
-    try {
+  public async updatePermission({ request }: HttpContextContract) {
+
       const data = await request.validate(UpdatePermissionValidator)
       const { key, ...newData } = data
       const permission = await permissionRepository.updatePermission(key, newData)
-      return response.send({
+      return {
         success: true,
         message: 'Permission updated successfully',
         data: permission,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to update permission',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async deletePermission({ request, response }: HttpContextContract) {
+  public async deletePermission({ request }: HttpContextContract) {
     const { key, updatestatus } = await request.validate(DeletePermissionValidator)
 
-    try {
       let permission
       if (!updatestatus) {
         permission = await permissionRepository.disablePermission(key)
@@ -100,19 +66,12 @@ export default class PermissionsController {
         permission = await permissionRepository.enablePermission(key)
       }
 
-      return response.send({
+      return {
         success: true,
         message: updatestatus
           ? 'Permissions enabled successfully'
           : 'Permissions disabled successfully',
         data: permission,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to disable permission',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 }

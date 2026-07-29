@@ -12,87 +12,57 @@ const endpointRepository = new EndpointRepository()
 export default class EndpointsController {
 
 
-  public async getEndpoints({ request, response }: HttpContextContract) {
-    try {
+  public async getEndpoints({ request }: HttpContextContract) {
       const filters = await request.validate(IsIncludeValidator)
 
       const endpoints = await endpointRepository.getAll(filters)
 
-      return response.ok({
+      return {
         success: true,
         message: 'Endpoints fetched successfully',
         data: endpoints,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch endpoints',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async getEndpoint({ request, response }: HttpContextContract) {
+  public async getEndpoint({ request}: HttpContextContract) {
     const { id } = await request.validate(GetEndpointValidator)
-console.log(id)
-    try {
+
       const endpoint = await endpointRepository.findById(id)
       console.log(endpoint)
-      return response.ok({
+      return {
         success: true,
         message: 'Endpoint fetched successfully',
         data: endpoint,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch endpoint',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async postEndpoint({ request, response }: HttpContextContract) {
+  public async postEndpoint({ request }: HttpContextContract) {
     const data = await request.validate(CreateEndpointValidator)
 
-    try {
       const endpoint = await endpointRepository.createEndpoint(data)
 
-      return response.created({
+      return {
         success: true,
         message: 'Endpoint created successfully',
         data: endpoint,
-      })
-    } catch (error: any) {
-      return response.notAcceptable({
-        success: false,
-        message: 'Endpoint already exists',
-        error: error.messages || error.message,
-      })
-    }
+      }
+
   }
 
-  public async updateEndpoint({ request, response }: HttpContextContract) {
-    try {
+  public async updateEndpoint({ request }: HttpContextContract) {
+
       const data = await request.validate(UpdateEndpointValidator)
       const { id, ...newData } = data
       const endpoint = await endpointRepository.updateEndpoint(id, newData)
-      return response.ok({
+      return {
         success: true,
         message: 'Endpoint updated successfully',
         data: endpoint,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to update endpoint',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async deleteEndpoint({ request, response }: HttpContextContract) {
-    try {
+  public async deleteEndpoint({ request }: HttpContextContract) {
+
       const { id, updatestatus } = await request.validate(DeleteEndpointValidator)
 
       let endpoint
@@ -102,36 +72,22 @@ console.log(id)
       } else {
         endpoint = await endpointRepository.enableEndpoint(id)
       }
-      return response.ok({
+      return {
         success: true,
         message: updatestatus ? 'Endpoint enabled successfully' : 'Endpoint disabled successfully',
         data: endpoint,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to update endpoint status',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 
-  public async getAccessDetails({ request, response }: HttpContextContract) {
-    try {
+  public async getAccessDetails({ request }: HttpContextContract) {
+
       const data = await request.validate(GetAccessDetailsValidator)
 
       const accessDetails = await endpointRepository.getAccessDetails(data)
-      return response.ok({
+      return {
         success: true,
         message: 'Access details fetched successfully',
         data: accessDetails,
-      })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch access details',
-        error: error.messages || error.message,
-      })
-    }
+      }
   }
 }

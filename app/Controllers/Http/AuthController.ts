@@ -6,7 +6,7 @@ const authRepository = new AuthRepository()
 export default class AuthController {
 
   public async login({ request, response }: HttpContextContract) {
-    try {
+
       const data = await request.validate(LoginValidator)
 
       const result = await authRepository.login(data.email)
@@ -17,12 +17,5 @@ export default class AuthController {
         token: result.token,
         role: result.role,
       })
-    } catch (error: any) {
-      return response.badRequest({
-        success: false,
-        message: 'Failed to fetch assigned roles',
-        error: error.messages || error.message,
-      })
-    }
   }
 }

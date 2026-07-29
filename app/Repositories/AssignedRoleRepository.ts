@@ -1,3 +1,4 @@
+import { Exception } from '@adonisjs/core/build/standalone'
 import AssignedRole from 'App/Models/AssignedRole'
 
 export default class AssignedRoleRepository {
@@ -23,10 +24,7 @@ export default class AssignedRoleRepository {
   }
 
   public async findById(id: number) {
-    const assignedRole = await AssignedRole.find(id)
-    if (!assignedRole) {
-      throw new Error('assignedRole Not Found')
-    }
+    const assignedRole = await AssignedRole.findOrFail(id)
     return assignedRole
   }
 
@@ -36,36 +34,58 @@ export default class AssignedRoleRepository {
   }
 
   public async exists(roleKey: string, email: string) {
-    return  AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
+    return await  AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
+
+
   }
 
-  public async createAssignedRole(data: any) {
-    return  AssignedRole.create(data)
+public async createAssignedRole(data: any) {
+  const exists = await this.exists(data.roleKey, data.email)
+
+  if (exists) {
+    throw new Exception(
+      'Assigned role already exists',
+      409,
+      'E_ASSIGNED_ROLE_EXISTS'
+    )
   }
 
-  public async updateAssignedRole(id: number, data: any) {
-    const assignedRole = await AssignedRole.find(id)
+  return AssignedRole.create(data)
+}
 
-    if (!assignedRole) {
-      throw new Error('assignedRole Not Found')
-    }
+public async updateAssignedRole(id: number, data: any) {
+  const assignedRole = await this.findById(id)
 
-    assignedRole.merge(data)
+  const newRoleKey = data.roleKey ?? assignedRole.roleKey
+  const newEmail = data.email ?? assignedRole.email
 
-    await assignedRole.save()
+  const exists = await AssignedRole.query()
+    .where('roleKey', newRoleKey)
+    .where('email', newEmail)
+    .first()
 
-    return assignedRole
+  if (
+    exists &&
+    exists.id !== assignedRole.id
+  ) {
+    throw new Exception(
+      'Assigned role already exists',
+      409,
+      'E_ASSIGNED_ROLE_EXISTS'
+    )
   }
 
-  public async deleteAssignedRole(id: number) {
-    const assignedRole = await AssignedRole.find(id)
+  assignedRole.merge(data)
+  await assignedRole.save()
 
-    if (!assignedRole) {
-      throw new Error('assignedRole Not Found')
-    }
+  return assignedRole
+}
+
+  public async deleteAssignedRole(assignedRole: AssignedRole) {
+
+
 
     await assignedRole.delete()
 
-    return assignedRole
   }
 }
