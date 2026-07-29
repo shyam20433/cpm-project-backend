@@ -63,7 +63,6 @@ export default class AssignedRolesController {
       const assignedRole = await assignedRoleRepository.findById(id)
       const data = await request.validate(UpdateAssignedRoleValidator)
       const roleKey = data.roleKey ?? assignedRole.roleKey
-      const email = data.email ?? assignedRole.email
       await CheckRoleExists.validate(roleKey)
       const updatedAssignedRole = await assignedRoleRepository.updateAssignedRole(id, data)
       return {
