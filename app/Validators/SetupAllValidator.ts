@@ -5,17 +5,12 @@ export default class SetupAllValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    role: schema.object().members({
-      key: schema.string({}, [rules.trim()]),
-      name: schema.string({}, [rules.trim()]),
-      description: schema.string({}, [rules.trim()]),
-      status: schema.boolean(),
-    }),
+  roleKey:  schema.array().members(schema.string({}, [rules.trim()])),
 
     permission: schema.object().members({
       key: schema.string({}, [rules.trim()]),
       name: schema.string({}, [rules.trim()]),
-      description: schema.string({}, [rules.trim()]),
+      description: schema.string.optional({}, [rules.trim()]),
       status: schema.boolean(),
     }),
 
@@ -35,14 +30,9 @@ export default class SetupAllValidator {
       status: schema.boolean(),
     }),
 
-    email: schema.string({}, [
-      rules.trim(),
-      rules.email(),
-    ]),
   })
 
-  public messages = {
-    required: '{{ field }} is required',
-    'email.email': 'Invalid email',
-  }
+public messages = {
+  required: '{{ field }} is required',
+}
 }
