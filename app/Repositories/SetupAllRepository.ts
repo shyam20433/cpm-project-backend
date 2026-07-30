@@ -45,6 +45,7 @@ const [roles, permissionExists, endpointExists] = await Promise.all([
       Endpoint.query().where('serviceId', data.endpoint.serviceId).where('route', data.endpoint.route)
         .where('method', data.endpoint.method).first(),
     ])
+    //console.log(`checked roles,permissions,endpoints are exist ??`)
 
 if (roles.length !== data.roleKey.length) {
   throw new Exception(
@@ -81,6 +82,7 @@ if (roles.length !== data.roleKey.length) {
         client: trx,
       }),
     ])
+    //console.log(`Inserted Endpoints and Permissions`)
 
     await Promise.all([
   ...roles.map((role) =>
@@ -95,6 +97,7 @@ if (roles.length !== data.roleKey.length) {
     )
   ),
 
+
   AssignedEndpoint.create(
     {
       endpointId: endpoint.id,
@@ -105,6 +108,8 @@ if (roles.length !== data.roleKey.length) {
     }
   ),
 ])
+//console.log(`roles are assigned to permissions`)
+//console.log(`Endpoints are assigned to permissions`)
 
     return {
   roles,
@@ -115,7 +120,7 @@ if (roles.length !== data.roleKey.length) {
     permissionKey: permission.key,
   })),
   assignedEndpoint: {
-    endpointId: endpoint.id,
+    endpointId: "endpoint.id",
     permissionKey: permission.key,
   },
 }

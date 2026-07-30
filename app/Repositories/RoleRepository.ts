@@ -56,28 +56,15 @@ export default class RoleRepository {
     data: any,
     trx: TransactionClientContract
   ) {
-    const exists = await Role.query()
+    let role = await Role.query()
       .useTransaction(trx)
       .where('key', data.role.key)
       .first()
-
-    if (exists) {
-      throw new Exception(
-        'Role already exists',
-        409,
-        'E_ROLE_EXISTS'
-      )
-    }
-
-    const role = await Role.create(data.role, {
-      client: trx,
-    })
 
     const permissions = [...new Set(data.permissions as string[])]
     const permissionRecords = await Promise.all(
       permissions.map((permissionKey) =>
         Permission.query()
-          .useTransaction(trx)
           .where('key', permissionKey)
           .first()
       )
@@ -91,8 +78,25 @@ export default class RoleRepository {
         )
       }
     })
+    if (!role) {
+      role = await Role.create(data.role, {
+        client: trx,
+      })
+    }
+    const existingAssignments = await AssignedPermission.query()
+      .where('roleKey', role.key)
+      .whereIn('permissionKey', permissions)
+
+    const existingPermissionKeys = new Set(
+      existingAssignments.map((item) => item.permissionKey)
+    )
+
+    const newPermissions = permissions.filter(
+      (permissionKey) => !existingPermissionKeys.has(permissionKey)
+    )
+
     await Promise.all(
-      permissions.map((permissionKey) =>
+      newPermissions.map((permissionKey) =>
         AssignedPermission.create(
           {
             roleKey: role.key,
@@ -104,15 +108,22 @@ export default class RoleRepository {
         )
       )
     )
-    await AssignedRole.create(
-      {
-        roleKey: role.key,
-        email: data.email,
-      },
-      {
-        client: trx,
-      }
-    )
+    const assignedRole = await AssignedRole.query()
+      .where('roleKey', role.key)
+      .where('email', data.email)
+      .first()
+
+    if (!assignedRole) {
+      await AssignedRole.create(
+        {
+          roleKey: role.key,
+          email: data.email,
+        },
+        {
+          client: trx,
+        }
+      )
+    }
 
     return {
       role,
@@ -126,37 +137,37 @@ export default class RoleRepository {
 
     if (exists) {
       throw new Exception(
-  'Role already exists',
-  409,
-  'E_ROLE_EXISTS'
-)
+        'Role already exists',
+        409,
+        'E_ROLE_EXISTS'
+      )
     }
 
     return Role.create(data)
   }
 
-public async updateRole(key: string, data: any) {
-  const role = await this.findByKey(key)
+  public async updateRole(key: string, data: any) {
+    const role = await this.findByKey(key)
 
-  const newKey = data.key ?? role.key
+    const newKey = data.key ?? role.key
 
-  const exists = await Role.query()
-    .where('key', newKey)
-    .first()
+    const exists = await Role.query()
+      .where('key', newKey)
+      .first()
 
-  if (exists && exists.key !== role.key) {
-    throw new Exception(
-      'Role already exists',
-      409,
-      'E_ROLE_EXISTS'
-    )
+    if (exists && exists.key !== role.key) {
+      throw new Exception(
+        'Role already exists',
+        409,
+        'E_ROLE_EXISTS'
+      )
+    }
+
+    role.merge(data)
+    await role.save()
+
+    return role
   }
-
-  role.merge(data)
-  await role.save()
-
-  return role
-}
 
   public async disableRole(key: string) {
     const role = await this.findByKey(key)
