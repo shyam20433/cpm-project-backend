@@ -5,14 +5,9 @@ import AssignedPermission from 'App/Models/AssignedPermission'
 import AssignedEndpoint from 'App/Models/AssignedEndpoint'
 import { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
 import { Exception } from '@adonisjs/core/build/standalone'
-/*
+
 interface SetupAllPayload {
-  role: {
-    key: string
-    name: string
-    description: string
-    status: boolean
-  }
+  roleKey: string[]
 
   permission: {
     key: string
@@ -27,33 +22,36 @@ interface SetupAllPayload {
     method: string
     status: boolean
   }
-
-  email: string
-} */
+}
 
 export default class RoleRepository {
   public async setupAll(
-    data: any,
+    data: SetupAllPayload,
     trx: TransactionClientContract
   ) {
-const [roles, permissionExists, endpointExists] = await Promise.all([
-        Role.query()
-    .whereIn('key', data.roleKey),
+    const roleKeys = [...new Set(data.roleKey)]
+    const [roles, permissionExists, endpointExists] = await Promise.all([
+      Role.query()
+        .whereIn('key', roleKeys),
 
-      Permission.query().where('key', data.permission.key).first(),
+      Permission.query()
+        .where('key', data.permission.key)
+        .first(),
 
-      Endpoint.query().where('serviceId', data.endpoint.serviceId).where('route', data.endpoint.route)
+      Endpoint.query()
+        .where('serviceId', data.endpoint.serviceId)
+        .where('route', data.endpoint.route)
         .where('method', data.endpoint.method).first(),
     ])
     //console.log(`checked roles,permissions,endpoints are exist ??`)
 
-if (roles.length !== data.roleKey.length) {
-  throw new Exception(
-    'One or more roles not found',
-    404,
-    'E_ROLE_NOT_FOUND'
-  )
-}
+    if (roles.length !== roleKeys.length) {
+      throw new Exception(
+        'One or more roles not found',
+        404,
+        'E_ROLE_NOT_FOUND'
+      )
+    }
 
     if (permissionExists) {
       throw new Exception(
@@ -84,45 +82,51 @@ if (roles.length !== data.roleKey.length) {
     ])
     //console.log(`Inserted Endpoints and Permissions`)
 
-    await Promise.all([
-  ...roles.map((role) =>
-    AssignedPermission.create(
+    const assignedPermissions = await Promise.all(
+      roles.map((role) =>
+        AssignedPermission.create(
+          {
+            roleKey: role.key,
+            permissionKey: permission.key,
+          },
+          {
+            client: trx,
+          }
+        )
+      )
+    )
+
+    const assignedEndpoint = await AssignedEndpoint.create(
       {
-        roleKey: role.key,
+        endpointId: endpoint.id,
         permissionKey: permission.key,
       },
       {
         client: trx,
       }
     )
-  ),
-
-
-  AssignedEndpoint.create(
-    {
-      endpointId: endpoint.id,
-      permissionKey: permission.key,
-    },
-    {
-      client: trx,
-    }
-  ),
-])
-//console.log(`roles are assigned to permissions`)
-//console.log(`Endpoints are assigned to permissions`)
-
     return {
-  roles,
-  permission,
-  endpoint,
-  assignedPermissions: roles.map((role) => ({
-    roleKey: role.key,
-    permissionKey: permission.key,
-  })),
-  assignedEndpoint: {
-    endpointId: endpoint.id,
-    permissionKey: permission.key,
-  },
-}
+      rolesAssigned: assignedPermissions
+      .map((assignedPermission) => assignedPermission.roleKey),
+
+      permissionCreated: {
+        key: assignedEndpoint.permissionKey,
+        name: permission.name,
+      },
+
+      endpointCreated: {
+        id: assignedEndpoint.endpointId,
+        route: endpoint.route,
+        method: endpoint.method,
+      },
+    }
+
+    /*   return {
+        roles,
+        permission,
+        endpoint,
+        assignedPermissions,
+        assignedEndpoint,
+      } */
   }
 }
