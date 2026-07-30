@@ -120,7 +120,7 @@ if (roles.length !== data.roleKey.length) {
     permissionKey: permission.key,
   })),
   assignedEndpoint: {
-    endpointId: "endpoint.id",
+    endpointId: endpoint.id,
     permissionKey: permission.key,
   },
 }

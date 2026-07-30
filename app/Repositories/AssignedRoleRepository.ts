@@ -2,7 +2,7 @@ import { Exception } from '@adonisjs/core/build/standalone'
 import AssignedRole from 'App/Models/AssignedRole'
 
 export default class AssignedRoleRepository {
-  public async getAll(sort?: string) {
+  public getAll(sort?: string) {
     const query = AssignedRole.query()
       .whereHas('role', (query) => {
         query.where('status', true)
@@ -33,10 +33,8 @@ export default class AssignedRoleRepository {
     return assignedRole
   }
 
-  public async exists(roleKey: string, email: string) {
-    return await  AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
-
-
+  public exists(roleKey: string, email: string) {
+    return AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
   }
 
 public async createAssignedRole(data: any) {
@@ -53,9 +51,7 @@ public async createAssignedRole(data: any) {
   return AssignedRole.create(data)
 }
 
-public async updateAssignedRole(id: number, data: any) {
-  const assignedRole = await this.findById(id)
-
+public async updateAssignedRole(assignedRole: AssignedRole, data: any) {
   const newRoleKey = data.roleKey ?? assignedRole.roleKey
   const newEmail = data.email ?? assignedRole.email
 

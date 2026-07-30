@@ -3,7 +3,7 @@ import { Exception } from '@adonisjs/core/build/standalone'
 import AssignedPermission from 'App/Models/AssignedPermission'
 
 export default class AssignedPermissionRepository {
-  public static async getAssignedPermissions(sort?: string) {
+  public static getAssignedPermissions(sort?: string) {
     const query = AssignedPermission.query()
       .whereHas('role', (query) => {
         query.where('status', true).select('key', 'name', 'description', 'status')
@@ -46,12 +46,11 @@ export default class AssignedPermissionRepository {
     return assignedPermission
   }
 
-  public static async exists(roleKey: string, permissionKey: string) {
-    return await  AssignedPermission.query()
+  public static exists(roleKey: string, permissionKey: string) {
+    return AssignedPermission.query()
       .where('roleKey', roleKey)
       .where('permissionKey', permissionKey)
       .first()
-
   }
 
   public static async create(data: any) {

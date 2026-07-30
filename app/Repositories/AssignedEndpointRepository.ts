@@ -1,7 +1,7 @@
 import AssignedEndpoint from 'App/Models/AssignedEndpoint'
 import { Exception } from '@adonisjs/core/build/standalone'
 export default class AssignedEndpointRepository {
-  public static async getAssignedEndpoints(sort?: string) {
+  public static getAssignedEndpoints(sort?: string) {
     const query = AssignedEndpoint.query()
       .whereHas('endpoint', (query) => {
         query.where('status', true)

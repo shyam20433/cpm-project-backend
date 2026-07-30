@@ -23,8 +23,10 @@ public async getAssignedEndpoints({ request }: HttpContextContract) {
   public async getAssignedEndpoint({ request }: HttpContextContract) {
     const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
 
-      await CheckEndpointExists.validate(endpointId)
-      await CheckPermissionExists.validate(permissionKey)
+      await Promise.all([
+        CheckEndpointExists.validate(endpointId),
+        CheckPermissionExists.validate(permissionKey),
+      ])
 
       const assignedEndpoint = await AssignedEndpointRepository.getAssignedEndpoint(
         endpointId,
@@ -39,8 +41,10 @@ public async getAssignedEndpoints({ request }: HttpContextContract) {
   public async postAssignedEndpoint({ request }: HttpContextContract) {
 
       const data = await request.validate(CreateAssignedEndpointValidator)
-      await CheckPermissionExists.validate(data.permissionKey)
-      await CheckEndpointExists.validate(data.endpointId)
+      await Promise.all([
+        CheckPermissionExists.validate(data.permissionKey),
+        CheckEndpointExists.validate(data.endpointId),
+      ])
 
       const assignedEndpoint = await AssignedEndpointRepository.create(data)
 
@@ -56,8 +60,10 @@ public async getAssignedEndpoints({ request }: HttpContextContract) {
 
       const { endpointId, permissionKey } = await request.validate(GetAssignedEndpointValidator)
 
-      await CheckEndpointExists.validate(endpointId)
-      await CheckPermissionExists.validate(permissionKey)
+      await Promise.all([
+        CheckEndpointExists.validate(endpointId),
+        CheckPermissionExists.validate(permissionKey),
+      ])
 
       const assignedEndpoint = await AssignedEndpointRepository.find(endpointId, permissionKey)
 
@@ -67,9 +73,10 @@ public async getAssignedEndpoints({ request }: HttpContextContract) {
       const updatedEndpointId = data.endpointId ?? assignedEndpoint.endpointId
       const updatedPermissionKey = data.permissionKey ?? assignedEndpoint.permissionKey
 
-      await CheckEndpointExists.validate(updatedEndpointId)
-
-      await CheckPermissionExists.validate(updatedPermissionKey)
+      await Promise.all([
+        CheckEndpointExists.validate(updatedEndpointId),
+        CheckPermissionExists.validate(updatedPermissionKey),
+      ])
 
       const updatedAssignedEndpoint = await AssignedEndpointRepository.update(
         assignedEndpoint,
@@ -85,8 +92,10 @@ public async getAssignedEndpoints({ request }: HttpContextContract) {
 
   public async deleteAssignedEndpoint({ request }: HttpContextContract) {
       const { endpointId, permissionKey } = await request.validate(DeleteAssignedEndpointValidator)
-      await CheckEndpointExists.validate(endpointId)
-      await CheckPermissionExists.validate(permissionKey)
+      await Promise.all([
+        CheckEndpointExists.validate(endpointId),
+        CheckPermissionExists.validate(permissionKey),
+      ])
 
       const assignedEndpoint = await AssignedEndpointRepository.find(endpointId, permissionKey)
 

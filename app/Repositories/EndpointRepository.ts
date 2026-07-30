@@ -1,7 +1,7 @@
 import Endpoint from 'App/Models/Endpoint'
 import { Exception } from '@adonisjs/core/build/standalone'
 export default class EndpointRepository {
-  public async getAll(filters: any) {
+  public getAll(filters: any) {
     const { include, sort } = filters
 
     const query = Endpoint.query()

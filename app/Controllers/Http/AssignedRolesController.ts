@@ -64,7 +64,7 @@ export default class AssignedRolesController {
       const data = await request.validate(UpdateAssignedRoleValidator)
       const roleKey = data.roleKey ?? assignedRole.roleKey
       await CheckRoleExists.validate(roleKey)
-      const updatedAssignedRole = await assignedRoleRepository.updateAssignedRole(id, data)
+      const updatedAssignedRole = await assignedRoleRepository.updateAssignedRole(assignedRole, data)
       return {
         success: true,
         message: 'assigned role updated successfully',

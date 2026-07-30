@@ -31,8 +31,10 @@ export default class AssignedPermissionsController {
 
     const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
 
-    await CheckRoleExists.validate(roleKey)
-    await CheckPermissionExists.validate(permissionKey)
+    await Promise.all([
+      CheckRoleExists.validate(roleKey),
+      CheckPermissionExists.validate(permissionKey),
+    ])
 
     const assignedPermission = await AssignedPermissionRepository.getAssignedPermission(
       roleKey,
@@ -52,8 +54,10 @@ export default class AssignedPermissionsController {
 
     const data = await request.validate(CreateAssignedPermissionValidator)
 
-    await CheckRoleExists.validate(data.roleKey)
-    await CheckPermissionExists.validate(data.permissionKey)
+    await Promise.all([
+      CheckRoleExists.validate(data.roleKey),
+      CheckPermissionExists.validate(data.permissionKey),
+    ])
 
     
     const assignedPermission = await AssignedPermissionRepository.create(data)
@@ -70,8 +74,10 @@ export default class AssignedPermissionsController {
 
     const { roleKey, permissionKey } = await request.validate(GetAssignedPermissionValidator)
 
-    await CheckRoleExists.validate(roleKey)
-    await CheckPermissionExists.validate(permissionKey)
+    await Promise.all([
+      CheckRoleExists.validate(roleKey),
+      CheckPermissionExists.validate(permissionKey),
+    ])
 
     const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 
@@ -80,8 +86,10 @@ export default class AssignedPermissionsController {
     const updatedRoleKey = data.roleKey ?? assignedPermission.roleKey
     const updatedPermissionKey = data.permissionKey ?? assignedPermission.permissionKey
 
-    await CheckRoleExists.validate(updatedRoleKey)
-    await CheckPermissionExists.validate(updatedPermissionKey)
+    await Promise.all([
+      CheckRoleExists.validate(updatedRoleKey),
+      CheckPermissionExists.validate(updatedPermissionKey),
+    ])
 
 
 
@@ -103,8 +111,10 @@ export default class AssignedPermissionsController {
   public async deleteAssignedPermission({ request}: HttpContextContract) {
     const { roleKey, permissionKey } = await request.validate(DeleteAssignedPermissionValidator)
 
-    await CheckRoleExists.validate(roleKey)
-    await CheckPermissionExists.validate(permissionKey)
+    await Promise.all([
+      CheckRoleExists.validate(roleKey),
+      CheckPermissionExists.validate(permissionKey),
+    ])
 
     const assignedPermission = await AssignedPermissionRepository.find(roleKey, permissionKey)
 

@@ -16,7 +16,7 @@ import { Exception } from '@adonisjs/core/build/standalone'
 } */
 
 export default class RoleRepository {
-  public async getAll(filters: any) {
+  public getAll(filters: any) {
     const { include, sort } = filters
 
     const query = Role.query()
@@ -62,22 +62,19 @@ export default class RoleRepository {
       .first()
 
     const permissions = [...new Set(data.permissions as string[])]
-    const permissionRecords = await Promise.all(
-      permissions.map((permissionKey) =>
-        Permission.query()
-          .where('key', permissionKey)
-          .first()
+    const permissionRecords = await Permission.query()
+      .useTransaction(trx)
+      .whereIn('key', permissions)
+
+    if (permissionRecords.length !== permissions.length) {
+      const foundKeys = new Set(permissionRecords.map((p) => p.key))
+      const missingKey = permissions.find((key) => !foundKeys.has(key))
+      throw new Exception(
+        `Permission '${missingKey}' not found`,
+        404,
+        'E_PERMISSION_NOT_FOUND'
       )
-    )
-    permissionRecords.forEach((permission, index) => {
-      if (!permission) {
-        throw new Exception(
-          `Permission '${permissions[index]}' not found`,
-          404,
-          'E_PERMISSION_NOT_FOUND'
-        )
-      }
-    })
+    }
     if (!role) {
       role = await Role.create(data.role, {
         client: trx,

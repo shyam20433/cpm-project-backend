@@ -1,7 +1,7 @@
 import Permission from 'App/Models/Permission'
 import { Exception } from '@adonisjs/core/build/standalone'
 export default class PermissionRepository {
-  public async getAll(filters: any) {
+  public getAll(filters: any) {
     const { include, sort } = filters
 
     const query = Permission.query()
