@@ -20,7 +20,7 @@ export default class AssignedRoleRepository {
       }
     }
     query.limit(20)
-    return  query
+    return query
   }
 
   public async findById(id: number) {
@@ -37,45 +37,45 @@ export default class AssignedRoleRepository {
     return AssignedRole.query().where('roleKey', roleKey).where('email', email).first()
   }
 
-public async createAssignedRole(data: any) {
-  const exists = await this.exists(data.roleKey, data.email)
+  public async createAssignedRole(data: any) {
+    const exists = await this.exists(data.roleKey, data.email)
 
-  if (exists) {
-    throw new Exception(
-      'Assigned role already exists',
-      409,
-      'E_ASSIGNED_ROLE_EXISTS'
-    )
+    if (exists) {
+      throw new Exception(
+        'Assigned role already exists',
+        409,
+        'E_ASSIGNED_ROLE_EXISTS'
+      )
+    }
+
+    return AssignedRole.create(data)
   }
 
-  return AssignedRole.create(data)
-}
+  public async updateAssignedRole(assignedRole: AssignedRole, data: any) {
+    const newRoleKey = data.roleKey ?? assignedRole.roleKey
+    const newEmail = data.email ?? assignedRole.email
 
-public async updateAssignedRole(assignedRole: AssignedRole, data: any) {
-  const newRoleKey = data.roleKey ?? assignedRole.roleKey
-  const newEmail = data.email ?? assignedRole.email
+    const exists = await AssignedRole.query()
+      .where('roleKey', newRoleKey)
+      .where('email', newEmail)
+      .first()
 
-  const exists = await AssignedRole.query()
-    .where('roleKey', newRoleKey)
-    .where('email', newEmail)
-    .first()
+    if (
+      exists &&
+      exists.id !== assignedRole.id
+    ) {
+      throw new Exception(
+        'Assigned role already exists',
+        409,
+        'E_ASSIGNED_ROLE_EXISTS'
+      )
+    }
 
-  if (
-    exists &&
-    exists.id !== assignedRole.id
-  ) {
-    throw new Exception(
-      'Assigned role already exists',
-      409,
-      'E_ASSIGNED_ROLE_EXISTS'
-    )
+    assignedRole.merge(data)
+    await assignedRole.save()
+
+    return assignedRole
   }
-
-  assignedRole.merge(data)
-  await assignedRole.save()
-
-  return assignedRole
-}
 
   public async deleteAssignedRole(assignedRole: AssignedRole) {
 
