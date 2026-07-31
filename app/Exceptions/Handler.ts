@@ -16,28 +16,45 @@ export default class ExceptionHandler extends HttpExceptionHandler {
     })
   }
   switch (error.code) {
-    case '23502':
-      return ctx.response.status(400).send({
-        success: false,
-        message: 'Required field cannot be null',
-      })
 
-    case '23503':
-      return ctx.response.status(400).send({
-        success: false,
-        message: 'Foreign key constraint violation',
-      })
-
-    case '23505':
+    case 'P0001':
       return ctx.response.status(409).send({
         success: false,
-        message: 'Duplicate record already exists',
+        code: error.code,
+        message: error.message,
+        detail: error.detail,
       })
 
-    case '22P02':
-      return ctx.response.status(400).send({
+    case 'P0002':
+      return ctx.response.status(409).send({
         success: false,
-        message: 'Invalid input syntax',
+        code: error.code,
+        message: error.message,
+        detail: error.detail,
+      })
+      case '42703':
+    return ctx.response.status(500).send({
+      success: false,
+      code: error.code,
+      message: error.message,   
+      detail: error.detail,
+      hint: error.hint,
+    })
+
+    case '23503':
+  return ctx.response.status(400).send({
+    success: false,
+    code: error.code,
+    message: 'Foreign key violation',
+    detail: error.detail,
+  })
+
+    case 'P0003':
+      return ctx.response.status(404).send({
+        success: false,
+        code: error.code,
+        message: error.message,
+        detail: error.detail,
       })
   }
 

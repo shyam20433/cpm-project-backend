@@ -1,4 +1,4 @@
-import Role from 'App/Models/Role'
+/* import Role from 'App/Models/Role'
 import Permission from 'App/Models/Permission'
 import Endpoint from 'App/Models/Endpoint'
 import AssignedPermission from 'App/Models/AssignedPermission'
@@ -12,24 +12,37 @@ interface SetupAllPayload {
   permission: {
     key: string
     name: string
-    description: string
+    description?: string
     status: boolean
   }
 
   endpoint: {
     serviceId: number
     route: string
-    method: string
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
     status: boolean
   }
 }
 
 export default class RoleRepository {
+
+  private normalize(value: string): string {
+  return value.trim().replace(/\s+/g, ' ')
+}
   public async setupAll(
     data: SetupAllPayload,
     trx: TransactionClientContract
   ) {
-    const roleKeys = [...new Set(data.roleKey)]
+    data.permission.key = this.normalize(data.permission.key)
+    data.permission.name = this.normalize(data.permission.name)
+    data.permission.description = data.permission.description
+      ?.trim()
+      .replace(/\s+/g, ' ')
+
+    data.endpoint.route = this.normalize(data.endpoint.route)
+    const roleKeys = [...new Set(
+      data.roleKey.map((role) => this.normalize(role))
+    )]
     const [roles, permissionExists, endpointExists] = await Promise.all([
       Role.query()
         .whereIn('key', roleKeys),
@@ -84,6 +97,7 @@ export default class RoleRepository {
 
     const assignedPermissions = await Promise.all(
       roles.map((role) =>
+
         AssignedPermission.create(
           {
             roleKey: role.key,
@@ -99,7 +113,7 @@ export default class RoleRepository {
     const assignedEndpoint = await AssignedEndpoint.create(
       {
         endpointId: endpoint.id,
-        permissionKey: permission.key,
+        permissionKey: permission.key
       },
       {
         client: trx,
@@ -107,7 +121,7 @@ export default class RoleRepository {
     )
     return {
       rolesAssigned: assignedPermissions
-      .map((assignedPermission) => assignedPermission.roleKey),
+        .map((assignedPermission) => assignedPermission.roleKey),
 
       permissionCreated: {
         key: assignedEndpoint.permissionKey,
@@ -120,13 +134,92 @@ export default class RoleRepository {
         method: endpoint.method,
       },
     }
+  }
+}
+ */
 
-    /*   return {
-        roles,
-        permission,
-        endpoint,
-        assignedPermissions,
-        assignedEndpoint,
-      } */
+import Database, {
+  TransactionClientContract,
+} from '@ioc:Adonis/Lucid/Database'
+
+interface SetupAllPayload {
+  roleKey: string[]
+
+  permission: {
+    key: string
+    name: string
+    description?: string
+    status: boolean
+  }
+
+  endpoint: {
+    serviceId: number
+    route: string
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+    status: boolean
+  }
+}
+
+export default class RoleRepository {
+  private normalize(value: string): string {
+    return value.trim().replace(/\s+/g, ' ')
+  }
+
+  public async setupAll(
+    data: SetupAllPayload,
+    trx: TransactionClientContract
+  ) {
+    // Normalize input
+    data.permission.key = this.normalize(data.permission.key)
+    data.permission.name = this.normalize(data.permission.name)
+    data.permission.description = data.permission.description
+      ? this.normalize(data.permission.description)
+      : undefined
+
+    data.endpoint.route = this.normalize(data.endpoint.route)
+
+    const roleKeys = [
+      ...new Set(data.roleKey.map((role) => this.normalize(role))),
+    ]
+
+    try {
+
+await trx.rawQuery(
+  `CALL setup_all(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  [
+    roleKeys,
+    data.permission.key,
+    data.permission.name,
+    data.permission.description ?? '',
+    data.permission.status,
+    data.endpoint.serviceId,
+    data.endpoint.route,
+    data.endpoint.method,
+    data.endpoint.status,
+  ]
+)
+
+
+      return {
+  message: 'RBAC setup completed successfully.',
+  data: {
+    endpoint: {
+      method: data.endpoint.method,
+      route: data.endpoint.route,
+      serviceId: data.endpoint.serviceId,
+      status: data.endpoint.status,
+    },
+    permission: {
+      key: data.permission.key,
+      name: data.permission.name,
+      description: data.permission.description,
+      status: data.permission.status,
+    },
+    rolesAssigned: roleKeys,
+  },
+}
+    } catch (error) {
+      throw error
+    }
   }
 }
