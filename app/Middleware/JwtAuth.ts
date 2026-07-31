@@ -1,15 +1,17 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Env from "@ioc:Adonis/Core/Env";
 import jwt from "jsonwebtoken";
+import { AuthUser } from "Contracts/Auth";
 
 import Endpoint from "App/Models/Endpoint";
 import AssignedEndpoint from "App/Models/AssignedEndpoint";
 
 export default class JwtAuth {
   public async handle(
-    { request, response, route }: HttpContextContract,
+    ctx: HttpContextContract,
     next: () => Promise<void>
   ) {
+    const { request, response, route } = ctx
     const authHeader = request.header("authorization");
 
     if (!authHeader) {
@@ -24,6 +26,12 @@ export default class JwtAuth {
 
     try {
       payload = jwt.verify(token, Env.get("APP_KEY"));
+      const authUser: AuthUser = {
+        email: payload.email,
+        roleKey: payload.roleKey,
+      }
+
+      request.authUser = authUser
     } catch {
       return response.unauthorized({
         message: "Invalid Token",
@@ -31,6 +39,7 @@ export default class JwtAuth {
     }
 
     const roleKey = payload.roleKey;
+    ; (request as any).user = payload
     const method = request.method();
     const pattern = route!.pattern;
     const endpoint = await Endpoint.query()
@@ -46,7 +55,7 @@ export default class JwtAuth {
 
     const access = await AssignedEndpoint.query()
       .join(
-        "assigned_permissions","assigned_permissions.permissionKey","assigned_endpoints.permissionKey"
+        "assigned_permissions", "assigned_permissions.permissionKey", "assigned_endpoints.permissionKey"
       )
       .where("assigned_permissions.roleKey", roleKey)
       .where("assigned_endpoints.endpointId", endpoint.id)

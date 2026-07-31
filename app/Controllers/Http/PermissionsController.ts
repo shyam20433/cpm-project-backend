@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-
+import Database from '@ioc:Adonis/Lucid/Database'
 import PermissionRepository from 'App/Repositories/PermissionRepository'
 
 import IsIncludeValidator from 'App/Validators/FetchAll/IsIncludeValidator'
@@ -32,46 +32,101 @@ export default class PermissionsController {
       }
   }
 
-  public async postPermission({ request }: HttpContextContract) {
+public async postPermission({ request, response }: HttpContextContract) {
+  const trx = await Database.transaction()
+
+  try {
     const data = await request.validate(CreatePermissionValidator)
 
-      const permission = await permissionRepository.createPermission(data)
+    const changedBy = request.authUser!.email
 
-      return {
-        success: true,
-        message: 'Permission created successfully',
-        data: permission,
-      }
+    const permission = await permissionRepository.createPermission(
+      data,
+      changedBy,
+      trx
+    )
+
+    await trx.commit()
+
+    return {
+      success: true,
+      message: 'Permission created successfully',
+      data: permission,
+    }
+  } catch (error) {
+    await trx.rollback()
+    throw error
   }
+}
 
-  public async updatePermission({ request }: HttpContextContract) {
+public async updatePermission({ request }: HttpContextContract) {
+  const trx = await Database.transaction()
 
-      const data = await request.validate(UpdatePermissionValidator)
-      const { key, ...newData } = data
-      const permission = await permissionRepository.updatePermission(key, newData)
-      return {
-        success: true,
-        message: 'Permission updated successfully',
-        data: permission,
-      }
+  try {
+    const data = await request.validate(UpdatePermissionValidator)
+
+    const { key, ...newData } = data
+
+    const changedBy = request.authUser!.email
+
+    const permission = await permissionRepository.updatePermission(
+      key,
+      newData,
+      changedBy,
+      trx
+    )
+
+    await trx.commit()
+
+    return {
+      success: true,
+      message: 'Permission updated successfully',
+      data: permission,
+    }
+  } catch (error) {
+    await trx.rollback()
+    throw error
   }
+}
 
-  public async deletePermission({ request }: HttpContextContract) {
-    const { key, updatestatus } = await request.validate(DeletePermissionValidator)
+public async deletePermission({ request }: HttpContextContract) {
+  const trx = await Database.transaction()
 
-      let permission
-      if (!updatestatus) {
-        permission = await permissionRepository.disablePermission(key)
-      } else {
-        permission = await permissionRepository.enablePermission(key)
-      }
+  try {
+    const { key, updatestatus } = await request.validate(
+      DeletePermissionValidator
+    )
 
-      return {
-        success: true,
-        message: updatestatus
-          ? 'Permissions enabled successfully'
-          : 'Permissions disabled successfully',
-        data: permission,
-      }
+    const changedBy = request.authUser!.email
+
+    let permission
+
+    if (!updatestatus) {
+      permission = await permissionRepository.disablePermission(
+        key,
+        changedBy,
+        trx
+      )
+    } else {
+      permission = await permissionRepository.enablePermission(
+        key,
+        changedBy,
+        trx
+      )
+    }
+
+    await trx.commit()
+
+    return {
+      success: true,
+      message: updatestatus
+        ? 'Permission enabled successfully'
+        : 'Permission disabled successfully',
+      data: permission,
+    }
+  } catch (error) {
+    await trx.rollback()
+    throw error
   }
+}
 }

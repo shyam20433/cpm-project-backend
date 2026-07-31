@@ -1,6 +1,10 @@
 import Permission from 'App/Models/Permission'
 import { Exception } from '@adonisjs/core/build/standalone'
+import AuditLogRepository from './AuditLogRepository'
+import type { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
+const auditLogRepository = new AuditLogRepository()
 export default class PermissionRepository {
+
   public getAll(filters: any) {
     const { include, sort } = filters
 
@@ -36,7 +40,11 @@ export default class PermissionRepository {
     return permission
   }
 
-  public async createPermission(data: any) {
+  public async createPermission(
+    data: any,
+    changedBy: string,
+    trx: TransactionClientContract
+  ) {
     const exists = await Permission.query().where('key', data.key).first()
 
     if (exists) {
@@ -47,17 +55,35 @@ export default class PermissionRepository {
       )
     }
 
-    return Permission.create(data)
-  }
+    const permission = await Permission.create(data, {
+      client: trx,
+    })
 
-  public async updatePermission(key: string, data: any) {
+    await auditLogRepository.create(
+      {
+        tableName: 'permissions',
+        recordId: permission.key,
+        action: 'CREATE',
+        oldData: null,
+        newData: permission.toJSON(),
+        changedBy,
+      },
+      trx
+    )
+
+    return permission
+  }
+  public async updatePermission(
+    key: string,
+    data: any,
+    changedBy: string,
+    trx: TransactionClientContract
+  ) {
     const permission = await this.findByKey(key)
 
     const newKey = data.key ?? permission.key
 
-    const exists = await Permission.query()
-      .where('key', newKey)
-      .first()
+    const exists = await Permission.query().where('key', newKey).first()
 
     if (exists && exists.key !== permission.key) {
       throw new Exception(
@@ -67,27 +93,91 @@ export default class PermissionRepository {
       )
     }
 
+    const oldData = permission.toJSON()
+
     permission.merge(data)
+
+    permission.useTransaction(trx)
+
     await permission.save()
+
+    const newData = permission.toJSON()
+
+    await auditLogRepository.create(
+      {
+        tableName: 'permissions',
+        recordId: permission.key,
+        action: 'UPDATE',
+        oldData,
+        newData,
+        changedBy,
+      },
+      trx
+    )
 
     return permission
   }
 
-  public async disablePermission(key: string) {
-    const permission = await this.findByKey(key)
+public async disablePermission(
+  key: string,
+  changedBy: string,
+  trx: TransactionClientContract
+) {
+  const permission = await this.findByKey(key)
 
-    permission.status = false
+  const oldData = permission.toJSON()
 
-    await permission.save()
+  permission.status = false
 
-    return permission
-  }
-  public async enablePermission(key: string) {
-    const permission = await this.findByKey(key)
+  permission.useTransaction(trx)
 
-    permission.status = true
-    await permission.save()
+  await permission.save()
 
-    return permission
-  }
+  const newData = permission.toJSON()
+
+  await auditLogRepository.create(
+    {
+      tableName: 'permissions',
+      recordId: permission.key,
+      action: 'DISABLE',
+      oldData,
+      newData,
+      changedBy,
+    },
+    trx
+  )
+
+  return permission
+}
+public async enablePermission(
+  key: string,
+  changedBy: string,
+  trx: TransactionClientContract
+) {
+  const permission = await this.findByKey(key)
+
+  const oldData = permission.toJSON()
+
+  permission.status = true
+
+  permission.useTransaction(trx)
+
+  await permission.save()
+
+  const newData = permission.toJSON()
+
+  await auditLogRepository.create(
+    {
+      tableName: 'permissions',
+      recordId: permission.key,
+      action: 'ENABLE',
+      oldData,
+      newData,
+      changedBy,
+    },
+    trx
+  )
+
+  return permission
+}
 }

@@ -1,5 +1,8 @@
 import Endpoint from 'App/Models/Endpoint'
 import { Exception } from '@adonisjs/core/build/standalone'
+import AuditLogRepository from './AuditLogRepository'
+import type { TransactionClientContract } from '@ioc:Adonis/Lucid/Database'
+const auditRepository = new AuditLogRepository()
 export default class EndpointRepository {
   public getAll(filters: any) {
     const { include, sort } = filters
@@ -35,67 +38,140 @@ export default class EndpointRepository {
     return endpoint
   }
 
-  public async createEndpoint(data: any) {
-    const exists = await Endpoint.query()
-      .where('serviceId', data.serviceId)
-      .where('method', data.method)
-      .where('route', data.route)
-      .first()
+public async createEndpoint(
+  data: any,
+  changedBy: string,
+  trx: TransactionClientContract
+) {
+  const exists = await Endpoint.query()
+    .where('serviceId', data.serviceId)
+    .where('method', data.method)
+    .where('route', data.route)
+    .first()
 
-    if (exists) {
-      throw new Exception(
-        'Endpoint already exists',
-        409,
-        'E_ENDPOINT_EXISTS'
-      )
-    }
-
-    return Endpoint.create(data)
+  if (exists) {
+    throw new Exception(
+      'Endpoint already exists',
+      409,
+      'E_ENDPOINT_EXISTS'
+    )
   }
 
-  public async updateEndpoint(id: number, data: any) {
-    const endpoint = await Endpoint.findOrFail(id)
+  const endpoint = await Endpoint.create(data, {
+    client: trx,
+  })
 
-    const newServiceId = data.serviceId ?? endpoint.serviceId
-    const newMethod = data.method ?? endpoint.method
-    const newRoute = data.route ?? endpoint.route
+  await auditRepository.create(
+    {
+      tableName: 'endpoints',
+      recordId: endpoint.id.toString(),
+      action: 'CREATE',
+      newData: endpoint.toJSON(),
+      changedBy,
+    },
+    trx
+  )
 
-    const exists = await Endpoint.query()
-      .where('serviceId', newServiceId)
-      .where('method', newMethod)
-      .where('route', newRoute)
-      .first()
+  return endpoint
+}
 
-    if (exists && exists.id !== endpoint.id) {
-      throw new Exception(
-        'Endpoint already exists',
-        409,
-        'E_ENDPOINT_EXISTS'
-      )
-    }
+public async updateEndpoint(
+  id: number,
+  data: any,
+  changedBy: string,
+  trx: TransactionClientContract
+) {
+  const endpoint = await Endpoint.findOrFail(id)
+  const oldData = endpoint.toJSON()
+  const newServiceId = data.serviceId ?? endpoint.serviceId
+  const newMethod = data.method ?? endpoint.method
+  const newRoute = data.route ?? endpoint.route
+  const exists = await Endpoint.query()
+    .where('serviceId', newServiceId)
+    .where('method', newMethod)
+    .where('route', newRoute)
+    .first()
 
-    endpoint.merge(data)
-    await endpoint.save()
-
-    return endpoint
+  if (exists && exists.id !== endpoint.id) {
+    throw new Exception(
+      'Endpoint already exists',
+      409,
+      'E_ENDPOINT_EXISTS'
+    )
   }
-  public async disableEndpoint(id: number) {
-    const endpoint = await Endpoint.findOrFail(id)
 
+  endpoint.merge(data)
 
+  await endpoint.useTransaction(trx).save()
 
-    endpoint.status = false
+  await auditRepository.create(
+    {
+      tableName: 'endpoints',
+      recordId: endpoint.id.toString(),
+      action: 'UPDATE',
+      oldData,
+      newData: endpoint.toJSON(),
+      changedBy,
+    },
+    trx
+  )
 
-    await endpoint.save()
+  return endpoint
+}
+public async disableEndpoint(
+  id: number,
+  changedBy: string,
+  trx: TransactionClientContract
+) {
+  const endpoint = await Endpoint.findOrFail(id)
 
-    return endpoint
-  }
-  public async enableEndpoint(id: number) {
-    const endpoint = await Endpoint.findOrFail(id)
-    endpoint.status = true
-    await endpoint.save()
-    return endpoint
-  }
+  const oldData = endpoint.toJSON()
+
+  endpoint.status = false
+
+  await endpoint.save()
+
+  await auditRepository.create(
+    {
+      tableName: 'endpoints',
+      recordId: endpoint.id.toString(),
+      action: 'UPDATE',
+      oldData,
+      newData: endpoint.toJSON(),
+      changedBy,
+    },
+    trx
+  )
+
+  return endpoint
+}
+  public async enableEndpoint(
+id: number,
+  changedBy: string,
+  trx: TransactionClientContract
+) {
+  const endpoint = await Endpoint.findOrFail(id)
+
+  const oldData = endpoint.toJSON()
+
+  endpoint.status = true
+
+  await endpoint.save()
+
+  await auditRepository.create(
+    {
+      tableName: 'endpoints',
+      recordId: endpoint.id.toString(),
+      action: 'UPDATE',
+      oldData,
+      newData: endpoint.toJSON(),
+      changedBy,
+    },
+    trx
+  )
+
+  return endpoint
+}
 
   public async getAccessDetails(data: any) {
     const includeAll = data.include === 'all'
