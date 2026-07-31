@@ -32,7 +32,7 @@ export default class PermissionsController {
       }
   }
 
-public async postPermission({ request, response }: HttpContextContract) {
+public async postPermission({ request }: HttpContextContract) {
   const trx = await Database.transaction()
 
   try {

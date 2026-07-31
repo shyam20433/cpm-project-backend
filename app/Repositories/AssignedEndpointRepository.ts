@@ -27,13 +27,13 @@ export default class AssignedEndpointRepository {
   }
 
   public static async getAssignedEndpoint(endpointId: number, permissionKey: string) {
-    const assigned_endpoint = await AssignedEndpoint.query()
+    const assignedEndpoint = await AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
       .preload('endpoint')
       .preload('permission')
       .first()
-    if (!assigned_endpoint) {
+    if (!assignedEndpoint) {
       throw new Exception(
         'Assigned endpoint not found',
         404,
@@ -41,7 +41,7 @@ export default class AssignedEndpointRepository {
       )
 
     }
-    return assigned_endpoint
+    return assignedEndpoint
   }
 
 public static async create(data: any) {
@@ -62,18 +62,18 @@ public static async create(data: any) {
 }
 
   public static async find(endpointId: number, permissionKey: string) {
-    const assigned_endpoint = await AssignedEndpoint.query()
+    const assignedEndpoint = await AssignedEndpoint.query()
       .where('endpointId', endpointId)
       .where('permissionKey', permissionKey)
       .first()
-    if (!assigned_endpoint) {
+    if (!assignedEndpoint) {
       throw new Exception(
         'Assigned endpoint not found',
         404,
         'E_ASSIGNED_ENDPOINT_NOT_FOUND'
       )
     }
-    return assigned_endpoint
+    return assignedEndpoint
   }
 
   public static async update(

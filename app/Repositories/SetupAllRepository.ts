@@ -138,7 +138,7 @@ export default class RoleRepository {
 }
  */
 
-import Database, {
+import {
   TransactionClientContract,
 } from '@ioc:Adonis/Lucid/Database'
 
@@ -169,7 +169,7 @@ export default class RoleRepository {
     data: SetupAllPayload,
     trx: TransactionClientContract
   ) {
-    // Normalize input
+  
     data.permission.key = this.normalize(data.permission.key)
     data.permission.name = this.normalize(data.permission.name)
     data.permission.description = data.permission.description

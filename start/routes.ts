@@ -1,5 +1,6 @@
 import Route from '@ioc:Adonis/Core/Route'
 //endpoints
+import redis from 'App/Services/Redis'
 
 Route.group(()=>{
   Route.get('/endpoints/access-details', 'EndpointsController.getAccessDetails')
@@ -70,3 +71,10 @@ Route.post('/login', 'AuthController.login')
 
 
 
+Route.get('/redis-test', async () => {
+  await redis.set('hello', 'Shyam')
+
+  const value = await redis.get('hello')
+
+  return value
+})
