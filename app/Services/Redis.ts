@@ -25,12 +25,12 @@ const redis = new Redis({
 })
 
 redis.on('ready', () => {
-  console.log('✅ Redis Connected and Ready')
+  console.log('Redis Connected and Ready')
 })
 
 redis.on('error', (error: NodeJS.ErrnoException) => {
   if (error.code !== 'ECONNREFUSED') {
-    console.error('❌ Redis Error:', error.message)
+    console.error('Redis Error:', error.message)
   }
 })
 

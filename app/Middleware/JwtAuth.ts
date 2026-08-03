@@ -71,19 +71,14 @@ export default class JwtAuth {
       }
 
       endpoint = endpointModel.toJSON();
-
       await redisRepository.set(endpointCacheKey, endpoint, 3600);
-
       console.log("Endpoint cache SAVED");
     }
 
     const roleCacheKey = `role-endpoints:${roleKey}`;
-
     let endpointIds = await redisRepository.get<number[]>(roleCacheKey);
-
     if (!endpointIds) {
       console.log("Role endpoint cache MISS");
-
       const assignedEndpoints = await AssignedEndpoint.query()
         .join(
           "assigned_permissions",
