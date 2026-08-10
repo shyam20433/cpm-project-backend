@@ -69,7 +69,7 @@ Route.post('/setup-all', 'SetupAllController.setupAll')
 
 Route.post('/login', 'AuthController.login')
 
-
+Route.get('/health', 'HealthController.index')
 
 Route.get('/redis-test', async () => {
   await redis.set('hello', 'Shyam')
